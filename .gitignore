@@ -25,3 +25,7 @@ Thumbs.db
 
 # VSCode settings
 .vscode/
+
+
+# Ignore all .env files
+.env
