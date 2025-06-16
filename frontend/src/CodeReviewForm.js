@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ReactComponent as HeroIcon } from './HeroIcon.svg';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 function Toast({ type, message, onClose }) {
     const colors = {
@@ -85,11 +87,29 @@ function CodeReviewForm() {
                     {/* Feedback/Chat Area */}
                     <div className="w-full max-w-3xl flex flex-col gap-4 mb-36">
                         {feedback && (
-                            <div className="bg-white border border-blue-200 rounded-2xl shadow-lg p-6 animate-fade-in">
-                                <h3 className="font-bold text-blue-700 mb-2 text-lg flex items-center gap-2">
+                            <div className="bg-white/90 border-2 border-blue-300 rounded-2xl shadow-2xl p-8 animate-fade-in max-w-2xl self-center">
+                                <h3 className="font-extrabold text-2xl text-blue-800 mb-4 flex items-center gap-2 tracking-wide">
                                     <span role="img" aria-label="sparkles">✨</span> Code Feedback
                                 </h3>
-                                <div className="text-base text-slate-800 whitespace-pre-line">{Object.values(feedback).join('\n')}</div>
+                                <div className="prose prose-blue max-w-none">
+                                    <ReactMarkdown
+                                        children={Object.values(feedback).join('\n\n')}
+                                        remarkPlugins={[remarkGfm]}
+                                        components={{
+                                            h1: ({ node, ...props }) => <h1 className="text-2xl font-bold text-blue-900 mt-4 mb-2" {...props} />,
+                                            h2: ({ node, ...props }) => <h2 className="text-xl font-bold text-blue-800 mt-3 mb-2" {...props} />,
+                                            h3: ({ node, ...props }) => <h3 className="text-lg font-semibold text-blue-700 mt-2 mb-1" {...props} />,
+                                            code: ({ node, inline, className, children, ...props }) =>
+                                                !inline ? (
+                                                    <pre className="bg-slate-100 rounded-md p-3 my-2 overflow-x-auto text-sm"><code {...props}>{children}</code></pre>
+                                                ) : (
+                                                    <code className="bg-slate-200 rounded px-1">{children}</code>
+                                                ),
+                                            li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+                                            strong: ({ node, ...props }) => <strong className="text-blue-900" {...props} />,
+                                        }}
+                                    />
+                                </div>
                             </div>
                         )}
                         {error && (
