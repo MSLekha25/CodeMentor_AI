@@ -24,25 +24,6 @@ function Toast({ type, message, onClose }) {
     );
 }
 
-function Navbar({ profileName }) {
-    return (
-        <nav className="w-full flex items-center justify-between px-6 py-4 shadow-md bg-blue4 text-white">
-            <div className="text-2xl font-bold tracking-tight text-blue1">
-                CodeMentor_AI
-            </div>
-            <div className="flex items-center gap-3">
-                <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue2 to-blue3 text-white text-xl font-bold">
-                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
-                        <circle cx="12" cy="8" r="4" fill="currentColor" className="text-blue1"/>
-                        <path d="M4 20c0-2.21 3.582-4 8-4s8 1.79 8 4" fill="currentColor" className="text-blue2"/>
-                    </svg>
-                </span>
-                <span className="font-semibold text-lg text-blue1">{profileName}</span>
-            </div>
-        </nav>
-    );
-}
-
 function Sidebar({ onNav }) {
     return (
         <aside className="flex flex-col gap-4 py-8 px-2 md:px-4 bg-blue3 min-w-[80px] w-full max-w-[220px] h-screen">
@@ -81,9 +62,6 @@ function CodeReviewForm() {
     const [chat, setChat] = useState([]);
     const [hasPrompted, setHasPrompted] = useState(false);
     const chatContainerRef = useRef(null);
-
-    // For navbar profile
-    const profileName = "John Doe";
 
     const showToast = (type, message, duration = 2500) => {
         setToast({ type, message });
@@ -141,7 +119,7 @@ function CodeReviewForm() {
 
     // Responsive layout
     return (
-        <div className="min-h-screen w-full h-screen flex flex-row overflow-hidden bg-blue1">
+        <div className="min-h-screen w-full h-screen flex flex-row overflow-hidden bg-blue4">
             <div className="hidden md:block min-w-[120px] bg-blue3">
                 <Sidebar onNav={() => {}} />
             </div>
@@ -154,7 +132,7 @@ function CodeReviewForm() {
                             </h2>
                             <form
                                 onSubmit={handleSubmit}
-                                className="w-full max-w-2xl mx-auto rounded-3xl bg-dark border border-blue3 shadow-2xl p-8 flex flex-row gap-4 items-center backdrop-blur-md"
+                                className="w-full max-w-4xl mx-auto rounded-3xl bg-dark border border-blue3 shadow-2xl p-8 flex flex-row gap-4 items-center backdrop-blur-md"
                             >
                                 <input
                                     className="flex-1 bg-transparent text-white placeholder:text-slate-300 border border-blue2 outline-none text-lg px-4 py-3 rounded-xl focus:ring-2"
@@ -185,7 +163,7 @@ function CodeReviewForm() {
                                     msg.role === 'user' ? (
                                         <div
                                             key={idx}
-                                            className="self-end max-w-xl w-fit rounded-2xl px-6 py-4 mb-2 shadow-lg text-base font-medium animate-fade-in bg-gradient-to-br from-blue2 to-blue3 text-white"
+                                            className="self-end max-w-2xl w-fit rounded-2xl px-6 py-4 mb-2 shadow-lg text-base font-medium animate-fade-in bg-blue4 text-white"
                                         >
                                             <span className="opacity-80 text-xs font-semibold tracking-wide text-blue1">You</span>
                                             <div className="whitespace-pre-line mt-1">{msg.content}</div>
@@ -193,7 +171,7 @@ function CodeReviewForm() {
                                     ) : (
                                         <div
                                             key={idx}
-                                            className="self-start max-w-2xl w-full border rounded-2xl px-8 py-6 mb-2 shadow-xl animate-fade-in bg-dark border-blue3 text-white"
+                                            className="self-start max-w-4xl w-full border rounded-2xl px-8 py-6 mb-2 shadow-xl animate-fade-in border-blue3 text-white bg-transparent"
                                         >
                                             <span className="text-xs font-semibold tracking-wide text-blue1">✨CodeMentor</span>
                                             <div className="prose prose-invert max-w-none text-base mt-1">
@@ -240,7 +218,7 @@ function CodeReviewForm() {
                         {/* Fixed input at the bottom */}
                         <form
                             onSubmit={handleSubmit}
-                            className="fixed bottom-0 left-0 right-0 w-full max-w-xl mx-auto rounded-3xl bg-dark border border-blue3 shadow-2xl p-6 flex flex-row gap-3 items-center backdrop-blur-md z-50"
+                            className="fixed bottom-0 left-0 right-0 w-full max-w-4xl mx-auto rounded-3xl bg-dark border border-blue3 shadow-2xl p-6 flex flex-row gap-3 items-center backdrop-blur-md z-50"
                             style={{margin: '0 auto'}}
                         >
                             <textarea
