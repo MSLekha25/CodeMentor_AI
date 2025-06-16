@@ -30,6 +30,8 @@ function CodeReviewForm() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState(null);
+    const [chat, setChat] = useState([]); // [{role: 'user'|'ai', content: string}]
+    const [hasPrompted, setHasPrompted] = useState(false);
 
     const showToast = (type, message, duration = 2500) => {
         setToast({ type, message });
@@ -41,9 +43,10 @@ function CodeReviewForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
-        setFeedback(null);
         setLoading(true);
         showToast('loading', 'Analyzing code…', 99999);
+        setChat(prev => [...prev, { role: 'user', content: code }]);
+        setHasPrompted(true);
         try {
             const response = await fetch('http://127.0.0.1:8000/api/code-review/', {
                 method: 'POST',
@@ -55,6 +58,7 @@ function CodeReviewForm() {
             setToast(null);
             if (response.ok) {
                 setFeedback(data.feedback);
+                setChat(prev => [...prev, { role: 'ai', content: Object.values(data.feedback).join('\n\n') }]);
                 showToast('success', 'Code submitted successfully!');
             } else {
                 setError(data);
@@ -66,6 +70,7 @@ function CodeReviewForm() {
             setError('Network error');
             showToast('error', 'Error: Couldn’t fetch response.');
         }
+        setCode('');
     };
 
     return (
@@ -85,31 +90,92 @@ function CodeReviewForm() {
                 {/* Right Content */}
                 <main className="right-content">
                     {/* Feedback/Chat Area */}
-                    <div className="w-full max-w-3xl flex flex-col gap-4 mb-36">
-                        {feedback && (
-                            <div className="bg-white/90 border-2 border-blue-300 rounded-2xl shadow-2xl p-8 animate-fade-in max-w-2xl self-center">
-                                <h3 className="font-extrabold text-2xl text-blue-800 mb-4 flex items-center gap-2 tracking-wide">
-                                    <span role="img" aria-label="sparkles">✨</span> Code Feedback
-                                </h3>
-                                <div className="prose prose-blue max-w-none">
-                                    <ReactMarkdown
-                                        children={Object.values(feedback).join('\n\n')}
-                                        remarkPlugins={[remarkGfm]}
-                                        components={{
-                                            h1: ({ node, ...props }) => <h1 className="text-2xl font-bold text-blue-900 mt-4 mb-2" {...props} />,
-                                            h2: ({ node, ...props }) => <h2 className="text-xl font-bold text-blue-800 mt-3 mb-2" {...props} />,
-                                            h3: ({ node, ...props }) => <h3 className="text-lg font-semibold text-blue-700 mt-2 mb-1" {...props} />,
-                                            code: ({ node, inline, className, children, ...props }) =>
-                                                !inline ? (
-                                                    <pre className="bg-slate-100 rounded-md p-3 my-2 overflow-x-auto text-sm"><code {...props}>{children}</code></pre>
-                                                ) : (
-                                                    <code className="bg-slate-200 rounded px-1">{children}</code>
-                                                ),
-                                            li: ({ node, ...props }) => <li className="mb-1" {...props} />,
-                                            strong: ({ node, ...props }) => <strong className="text-blue-900" {...props} />,
-                                        }}
+                    <div className="w-full flex flex-col items-center justify-center min-h-[80vh]">
+                        {!hasPrompted && (
+                            <>
+                                <h2 className="text-4xl md:text-5xl font-bold text-slate-100 mb-10 text-center drop-shadow-lg">Hey, what's on your mind today?</h2>
+                                <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto rounded-3xl bg-[#181f2a] border border-blue-900 shadow-2xl px-8 py-8 flex flex-col gap-4 items-center backdrop-blur-md">
+                                    <input
+                                        className="w-full bg-transparent text-slate-100 placeholder:text-slate-400 border-none outline-none text-lg mb-4"
+                                        placeholder="Message CodeMentor_AI"
+                                        value={code}
+                                        onChange={e => setCode(e.target.value)}
+                                        required
                                     />
+                                    <button
+                                        type="submit"
+                                        className="self-end border-2 border-blue-400 rounded-2xl px-8 py-3 font-semibold text-white bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 shadow-xl transition-all duration-200 transform hover:scale-105 flex items-center gap-2 text-lg drop-shadow-lg"
+                                        disabled={loading}
+                                    >
+                                        Submit
+                                        <span className="ml-1">➤</span>
+                                    </button>
+                                </form>
+                            </>
+                        )}
+                        {hasPrompted && (
+                            <div className="w-full flex flex-col gap-6 items-center">
+                                <div className="w-full flex flex-col gap-4 px-2">
+                                    {chat.map((msg, idx) =>
+                                        msg.role === 'user' ? (
+                                            <div key={idx} className="self-end max-w-2xl w-fit bg-gradient-to-br from-blue-700 to-blue-900 text-white rounded-2xl px-6 py-4 mb-2 shadow-lg text-base font-medium animate-fade-in">
+                                                <span className="opacity-80 text-xs font-semibold tracking-wide">You</span>
+                                                <div className="whitespace-pre-line mt-1">{msg.content}</div>
+                                            </div>
+                                        ) : (
+                                            <div key={idx} className="self-start max-w-3xl w-full md:w-[80%] bg-[#181f2a] border border-blue-900 text-slate-100 rounded-2xl px-8 py-6 mb-2 shadow-xl animate-fade-in">
+                                                <span className="text-blue-400 text-xs font-semibold tracking-wide">AI</span>
+                                                <div className="prose prose-invert prose-blue max-w-none text-base mt-1">
+                                                    <ReactMarkdown
+                                                        children={msg.content}
+                                                        remarkPlugins={[remarkGfm]}
+                                                        components={{
+                                                            code({ node, inline, className, children, ...props }) {
+                                                                if (inline) {
+                                                                    return <code className="bg-blue-900/40 text-blue-200 rounded px-1 font-mono text-sm">{children}</code>;
+                                                                }
+                                                                const codeString = String(children);
+                                                                const highlighted = codeString.split('\n').map((line, idx) => {
+                                                                    if (line.trim().startsWith('#') || line.trim().startsWith('//')) {
+                                                                        return <span key={idx} style={{ color: 'lightgreen' }}>{line + '\n'}</span>;
+                                                                    }
+                                                                    return <span key={idx}>{line + '\n'}</span>;
+                                                                });
+                                                                return (
+                                                                    <pre className="bg-[#232b3a] border border-blue-900 rounded-xl p-4 my-2 overflow-x-auto text-sm font-mono shadow-inner">
+                                                                        <code {...props}>{highlighted}</code>
+                                                                    </pre>
+                                                                );
+                                                            },
+                                                            h1: ({ node, ...props }) => <h1 className="text-2xl font-bold text-blue-300 mt-4 mb-2" {...props} />,
+                                                            h2: ({ node, ...props }) => <h2 className="text-xl font-bold text-blue-200 mt-3 mb-2" {...props} />,
+                                                            h3: ({ node, ...props }) => <h3 className="text-lg font-semibold text-blue-400 mt-2 mb-1" {...props} />,
+                                                            li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+                                                            strong: ({ node, ...props }) => <strong className="text-blue-200" {...props} />,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )
+                                    )}
                                 </div>
+                                {/* Input at the bottom after prompt */}
+                                <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto rounded-3xl bg-[#181f2a] border border-blue-900 shadow-2xl px-6 py-4 flex flex-row gap-3 items-center backdrop-blur-md mt-8">
+                                    <input
+                                        className="flex-1 bg-transparent text-slate-100 placeholder:text-slate-400 border-none outline-none text-lg px-4 py-3 rounded-xl focus:ring-2 focus:ring-cyan-400 shadow-inner transition-all duration-200"
+                                        placeholder="Message CodeMentor_AI"
+                                        value={code}
+                                        onChange={e => setCode(e.target.value)}
+                                        required
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="border-2 border-blue-400 rounded-xl px-6 py-3 font-semibold text-white bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 shadow-xl transition-all duration-200 transform hover:scale-105 flex items-center gap-2 text-lg drop-shadow-lg"
+                                        disabled={loading}
+                                    >
+                                        <span className="ml-1">➤</span>
+                                    </button>
+                                </form>
                             </div>
                         )}
                         {error && (
@@ -118,27 +184,6 @@ function CodeReviewForm() {
                             </div>
                         )}
                     </div>
-                    {/* Sticky Input Bar */}
-                    <form onSubmit={handleSubmit} className="fixed bottom-0 left-0 w-full flex justify-center z-40 bg-gradient-to-t from-white/90 to-white/60 py-6 shadow-2xl">
-                        <div className="w-full max-w-3xl flex flex-col md:flex-row gap-4 items-end">
-                            <textarea
-                                className="flex-1 border-2 border-blue-400 rounded-2xl p-4 text-base font-mono bg-white focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-400 transition shadow-sm resize-none min-h-[80px] max-h-[180px] placeholder:text-slate-400"
-                                placeholder="Paste your code here..."
-                                value={code}
-                                onChange={e => setCode(e.target.value)}
-                                required
-                            />
-                            <button
-                                type="submit"
-                                className="border-2 border-blue-400 rounded-2xl px-8 py-3 font-semibold text-white bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 shadow-lg transition-all duration-200 transform hover:scale-105 flex items-center gap-2 text-lg"
-                                disabled={loading}
-                            >
-                                Submit
-                                <span className="ml-1">➤</span>
-                            </button>
-                        </div>
-                    </form>
-                    {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
                 </main>
             </div>
         </div>
