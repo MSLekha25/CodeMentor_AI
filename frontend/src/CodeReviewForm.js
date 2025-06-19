@@ -56,7 +56,7 @@ function CodeReviewForm() {
     const [toast, setToast] = useState(null);
     const [chat, setChat] = useState([]);
     const [hasPrompted, setHasPrompted] = useState(false);
-    const [copiedStates, setCopiedStates] = useState({});
+    const [copiedButton, setCopiedButton] = useState(null);
     const chatContainerRef = useRef(null);
 
     const showToast = (type, message, duration = 2500) => {
@@ -66,12 +66,16 @@ function CodeReviewForm() {
         }
     };
 
-    const handleCopy = (text, buttonId) => {
-        navigator.clipboard.writeText(text);
-        setCopiedStates(prev => ({ ...prev, [buttonId]: true }));
-        setTimeout(() => {
-            setCopiedStates(prev => ({ ...prev, [buttonId]: false }));
-        }, 2000);
+    const handleCopy = async (text, buttonId) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopiedButton(buttonId);
+            setTimeout(() => {
+                setCopiedButton(null);
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -181,44 +185,77 @@ function CodeReviewForm() {
                                                     components={{
                                                         code({ node, inline, className, children, ...props }) {
                                                             if (inline) {
-                                                                return <code className="bg-[#1A2E4C] text-[#64FFDA] rounded px-1.5 py-0.5 font-mono text-[0.95em]">{children}</code>;
+                                                                return <code className="bg-[#1E1E1E] text-[#9CDCFE] rounded px-1.5 py-0.5 font-mono text-[0.95em]">{children}</code>;
                                                             }
                                                             const codeString = String(children);
-                                                            const buttonId = `copy-button-${idx}-${Math.random().toString(36).substr(2, 9)}`;
-                                                            const highlighted = codeString.split('\n').map((line, idx) => {
-                                                                if (line.trim().startsWith('#') || line.trim().startsWith('//')) {
-                                                                    return <span key={idx} className="text-[#64FFDA]">{line + '\n'}</span>;
-                                                                }
-                                                                return <span key={idx}>{line + '\n'}</span>;
+                                                            const buttonId = `copy-${idx}`;
+                                                            const isCopied = copiedButton === buttonId;
+                                                            
+                                                            const highlighted = codeString.split('\n').map((line, lineIdx) => {
+                                                                const tokens = line.split(/([a-zA-Z_]\w*|[(){}[\],"'`.]+|[\s]+|\d+)/g).filter(Boolean);
+                                                                return (
+                                                                    <span key={lineIdx} className="text-[#D4D4D4]">
+                                                                        {tokens.map((token, tokenIdx) => {
+                                                                            // Keywords (purple/blue)
+                                                                            if (/^(public|private|protected|class|static|void|String)$/.test(token)) {
+                                                                                return <span key={tokenIdx} className="text-[#569CD6]">{token}</span>;
+                                                                            }
+                                                                            // Built-in types (blue)
+                                                                            if (/^(System)$/.test(token)) {
+                                                                                return <span key={tokenIdx} className="text-[#4EC9B0]">{token}</span>;
+                                                                            }
+                                                                            // Method calls (yellow)
+                                                                            if (/^(println|print|out)$/.test(token)) {
+                                                                                return <span key={tokenIdx} className="text-[#DCDCAA]">{token}</span>;
+                                                                            }
+                                                                            // Strings (bright green)
+                                                                            if (/^["'].*["']$/.test(token)) {
+                                                                                return <span key={tokenIdx} className="text-[#6A9955]">{token}</span>;
+                                                                            }
+                                                                            // Class names (starting with uppercase, not keywords)
+                                                                            if (/^[A-Z][a-zA-Z0-9_]*$/.test(token) && !/^(String|System)$/.test(token)) {
+                                                                                return <span key={tokenIdx} className="text-[#4EC9B0]">{token}</span>;
+                                                                            }
+                                                                            // Parameters and variables (light blue)
+                                                                            if (/^[a-z][a-zA-Z0-9_]*$/.test(token)) {
+                                                                                return <span key={tokenIdx} className="text-[#9CDCFE]">{token}</span>;
+                                                                            }
+                                                                            // Return token as is for spaces and other characters
+                                                                            return <span key={tokenIdx}>{token}</span>;
+                                                                        })}
+                                                                        {'\n'}
+                                                                    </span>
+                                                                );
                                                             });
+                                                            
                                                             return (
-                                                                <pre className="bg-[#1A2E4C] border border-[#233554] rounded-xl p-4 my-3 overflow-x-auto font-mono text-[15px] text-white relative group">
-                                                                    <div className="absolute top-2 right-2 flex items-center gap-2">
-                                                                        {copiedStates[buttonId] && (
-                                                                            <span className="text-xs text-[#64FFDA] bg-[#112240] rounded px-2 py-0.5 animate-fade-in">
-                                                                                Copied!
-                                                                            </span>
-                                                                        )}
-                                                                        <button
-                                                                            id={buttonId}
-                                                                            className="text-xs text-[#64FFDA] bg-[#112240] rounded px-2 py-0.5 border-none cursor-pointer hover:bg-[#1A2E4C] transition-colors opacity-0 group-hover:opacity-100"
-                                                                            onClick={() => handleCopy(codeString, buttonId)}
-                                                                            type="button"
-                                                                            title="Copy code"
-                                                                        >
-                                                                            Copy
-                                                                        </button>
-                                                                    </div>
-                                                                    <code {...props} className="text-[#CCD6F6]">{highlighted}</code>
+                                                                <pre className="bg-[#1E1E1E] border border-[#2D2D2D] rounded-xl p-4 my-3 overflow-x-auto font-mono text-[15px] relative group">
+                                                                    <button
+                                                                        className={`absolute top-2 right-2 text-xs ${
+                                                                            isCopied 
+                                                                                ? 'bg-[#2D2D2D] text-[#6A9955]' 
+                                                                                : 'bg-[#2D2D2D] text-[#D4D4D4] hover:bg-[#3E3E3E]'
+                                                                        } rounded px-2 py-0.5 border border-[#3E3E3E] cursor-pointer transition-all duration-200 opacity-0 group-hover:opacity-100`}
+                                                                        onClick={() => handleCopy(codeString, buttonId)}
+                                                                    >
+                                                                        {isCopied ? 'Copied!' : 'Copy'}
+                                                                    </button>
+                                                                    <code {...props}>{highlighted}</code>
                                                                 </pre>
                                                             );
                                                         },
-                                                        h1: ({ node, ...props }) => <h1 className="text-[#64FFDA] font-bold text-2xl mt-4 mb-2" {...props} />,
-                                                        h2: ({ node, ...props }) => <h2 className="text-[#64FFDA] font-bold text-xl mt-3 mb-2" {...props} />,
-                                                        h3: ({ node, ...props }) => <h3 className="text-[#64FFDA] font-semibold text-lg mt-2 mb-1" {...props} />,
-                                                        li: ({ node, ...props }) => <li className="mb-1 text-[#CCD6F6]" {...props} />,
-                                                        strong: ({ node, ...props }) => <strong className="text-[#64FFDA]" {...props} />,
-                                                        p: ({ node, ...props }) => <p className="text-[#CCD6F6] mb-4" {...props} />,
+                                                        h1: ({ node, ...props }) => <h1 className="text-white font-bold text-2xl mt-4 mb-2" {...props} />,
+                                                        h2: ({ node, ...props }) => <h2 className="text-white font-bold text-xl mt-3 mb-2" {...props} />,
+                                                        h3: ({ node, ...props }) => <h3 className="text-white font-bold text-lg mt-2 mb-1" {...props} />,
+                                                        strong: ({ node, ...props }) => <strong className="text-white font-bold" {...props} />,
+                                                        em: ({ node, ...props }) => <em className="text-white font-bold italic" {...props} />,
+                                                        p: ({ node, ...props }) => <p className="text-[#CCD6F6] mb-4 leading-relaxed" {...props} />,
+                                                        li: ({ node, ...props }) => <li className="text-[#CCD6F6] mb-1" {...props} />,
+                                                        ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-4 space-y-1" {...props} />,
+                                                        ol: ({ node, ...props }) => <ol className="list-decimal list-inside mb-4 space-y-1" {...props} />,
+                                                        blockquote: ({ node, ...props }) => (
+                                                            <blockquote className="border-l-4 border-[#64FFDA] pl-4 my-4 text-[#CCD6F6] italic" {...props} />
+                                                        ),
                                                     }}
                                                 />
                                             </div>
