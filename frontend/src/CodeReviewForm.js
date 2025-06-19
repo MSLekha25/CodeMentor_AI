@@ -20,6 +20,21 @@ function Toast({ type, message, onClose }) {
     );
 }
 
+function Navbar() {
+    return (
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A192F] shadow-lg">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-center items-center h-16">
+                    <div className="flex items-center gap-2">
+                        <span className="text-2xl">✨</span>
+                        <span className="text-white text-2xl font-bold">CodeMentor AI</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    );
+}
+
 function Sidebar({ onNav }) {
     return (
         <aside className="flex flex-col gap-4 py-8 px-2 md:px-4 bg-[#1B2A4B] min-w-[120px] w-full max-w-[280px] h-screen">
@@ -122,37 +137,34 @@ function CodeReviewForm() {
     // Responsive layout
     return (
         <div className="min-h-screen w-full h-screen flex flex-row overflow-hidden bg-[#0A192F]">
+            <Navbar />
             <div className="hidden md:block min-w-[120px] bg-[#05101F]">
                 <Sidebar onNav={() => {}} />
             </div>
-            <main className="flex-1 flex flex-col items-center justify-center w-full bg-[#0A192F] relative">
-                <div className="w-full flex flex-col items-center justify-center min-h-[100vh]">
-                    {!hasPrompted && (
-                        <div className="flex flex-col items-center justify-center w-full h-full">
-                            <h2 className="text-4xl md:text-5xl font-bold mb-10 text-center drop-shadow-lg text-white">
-                                Hey, what's on your mind today?
-                            </h2>
+            <main className="flex-1 flex flex-col items-center w-full bg-[#0A192F] relative pt-16">
+                <div className="w-full flex flex-col items-center justify-start min-h-[calc(100vh-64px)] p-4">
+                    {!hasPrompted ? (
+                        <div className="flex flex-col items-center justify-center w-full h-full max-w-4xl mx-auto">
                             <form
                                 onSubmit={handleSubmit}
-                                className="w-full max-w-4xl mx-auto rounded-3xl bg-[#112240] border border-[#233554] shadow-2xl p-8 flex flex-row gap-4 items-center backdrop-blur-md"
+                                className="w-full rounded-3xl bg-[#112240] border border-[#233554] shadow-2xl p-8 flex flex-row gap-4 items-center backdrop-blur-md"
                             >
                                 <input
-                                    className="flex-1 bg-[#1A2E4C] text-white placeholder:text-slate-300 border border-[#233554] outline-none text-lg px-4 py-3 rounded-xl focus:ring-2"
-                                    placeholder="Message CodeMentor_AI"
+                                    className="flex-1 bg-[#1A2E4C] text-white placeholder:text-slate-300 border border-[#233554] outline-none text-lg px-4 py-3 rounded-xl focus:ring-2 focus:ring-[#64FFDA] focus:border-[#64FFDA] transition-colors"
+                                    placeholder="Ask me anything about your code..."
                                     value={code}
                                     onChange={e => setCode(e.target.value)}
                                     required
                                 />
                                 <button
                                     type="submit"
-                                    className="rounded-xl px-6 py-3 font-semibold text-white shadow-xl transition-all duration-200 transform hover:scale-105 flex items-center gap-2 text-lg drop-shadow-lg bg-gradient-to-r from-[#233554] to-[#1A2E4C] border-2 border-[#233554]"
+                                    className="rounded-xl px-6 py-3 font-semibold text-white shadow-xl transition-all duration-200 transform hover:scale-105 flex items-center gap-2 text-lg drop-shadow-lg bg-gradient-to-r from-[#233554] to-[#1A2E4C] border-2 border-[#233554] hover:border-[#64FFDA]"
                                 >
                                     <span className="ml-1">➤</span>
                                 </button>
                             </form>
                         </div>
-                    )}
-                    {hasPrompted && (
+                    ) : (
                         <>
                         <div
                             ref={chatContainerRef}
