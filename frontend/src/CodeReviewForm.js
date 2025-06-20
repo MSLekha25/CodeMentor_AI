@@ -1,6 +1,126 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { FaRegSquare, FaEdit, FaCog } from 'react-icons/fa';
+import { HiOutlineViewBoards } from 'react-icons/hi';
+import { RxDashboard } from 'react-icons/rx';
+import { FiEdit, FiTrendingUp } from 'react-icons/fi';
+
+// Custom SidebarIcon SVG component
+function SidebarIcon({ className = "w-7 h-7" }) {
+    return (
+        <svg
+            viewBox="0 0 48 48"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className={className}
+        >
+            <rect x="4" y="4" width="40" height="40" rx="12" stroke="#FFFFFF" strokeWidth="4" fill="none" />
+            <line x1="24" y1="6" x2="24" y2="42" stroke="#FFFFFF" strokeWidth="3" />
+            <rect x="10" y="12" width="10" height="3" rx="1.5" fill="#FFFFFF" />
+            <rect x="10" y="20" width="10" height="3" rx="1.5" fill="#FFFFFF" />
+            <rect x="10" y="28" width="10" height="3" rx="1.5" fill="#FFFFFF" />
+        </svg>
+    );
+}
+
+// Custom ActionsMenuIcon SVG component
+function ActionsMenuIcon({ className = "w-7 h-7" }) {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className={className}
+        >
+            <rect x="3" y="3" width="6" height="6" rx="1.5" stroke="#FFFFFF" strokeWidth="2" fill="none" />
+            <rect x="15" y="3" width="6" height="6" rx="1.5" stroke="#FFFFFF" strokeWidth="2" fill="none" />
+            <rect x="3" y="15" width="6" height="6" rx="1.5" stroke="#FFFFFF" strokeWidth="2" fill="none" />
+            <rect x="15" y="15" width="6" height="6" rx="1.5" stroke="#FFFFFF" strokeWidth="2" fill="none" />
+        </svg>
+    );
+}
+
+function ActionMenu({ isOpen, onClose, onAction }) {
+    if (!isOpen) return null;
+    return (
+        <div className="absolute left-0 mt-2 w-48 bg-[#1B2A4B] rounded-lg shadow-lg border border-[#233554] z-50">
+            <button
+                onClick={() => { onAction('exam'); onClose(); }}
+                className="flex items-center w-full px-4 py-3 text-white hover:bg-[#2C3B5C] transition-colors gap-2"
+            >
+                <FiEdit className="text-[#64FFDA] text-lg" /> Take Exam
+            </button>
+            <button
+                onClick={() => { onAction('progress'); onClose(); }}
+                className="flex items-center w-full px-4 py-3 text-white hover:bg-[#2C3B5C] transition-colors gap-2"
+            >
+                <FiTrendingUp className="text-[#FFD700] text-lg" /> Progress
+            </button>
+        </div>
+    );
+}
+
+function Sidebar({ isOpen, chats, onChatSelect, currentChatId }) {
+    return (
+        <aside className={`fixed top-16 left-0 h-[calc(100vh-64px)] bg-[#1B2A4B] z-40 transition-all duration-300 shadow-lg ${isOpen ? 'w-72' : 'w-0'} overflow-hidden`}>
+            <div className="flex flex-col h-full">
+                <div className="p-4 text-white text-sm font-medium">Previous Chats</div>
+                <div className="flex-1 overflow-y-auto">
+                    {chats.map((chat, idx) => {
+                        let chatTitle = '';
+                        if (chat[0]?.content) {
+                            const content = chat[0].content;
+                            const cleanContent = content.replace(/```[\s\S]*?```/g, '').replace(/[^a-zA-Z0-9\s]/g, ' ');
+                            chatTitle = cleanContent.split(/[.!?]|\n/)[0].trim().slice(0, 40) + '...';
+                        }
+                        return (
+                            <button
+                                key={idx}
+                                onClick={() => onChatSelect(idx)}
+                                className={`w-full text-left px-4 py-3 hover:bg-[#2C3B5C] transition-colors ${currentChatId === idx ? 'bg-[#2C3B5C]' : ''}`}
+                            >
+                                <div className="flex items-center text-white">
+                                    <span role="img" aria-label="chat" className="mr-3">💬</span>
+                                    <span className="text-sm truncate">{chatTitle || 'Chat ' + (idx + 1)}</span>
+                                </div>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+        </aside>
+    );
+}
+
+function Navbar({ onToggleSidebar, onNewChat, onOpenActions, isSidebarOpen, isActionsOpen }) {
+    return (
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A192F] shadow-lg">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center h-16">
+                    <div className="flex items-center gap-2 relative ml-0">
+                        <button onClick={onToggleSidebar} className={`p-2 rounded-lg hover:bg-[#2C3B5C] ${isSidebarOpen ? 'bg-[#2C3B5C]' : ''}`}>
+                            <SidebarIcon className="w-7 h-7" />
+                        </button>
+                        <button onClick={onNewChat} className="p-2 rounded-lg hover:bg-[#2C3B5C]">
+                            <FaEdit className="text-white w-7 h-7" />
+                        </button>
+                        <div className="relative">
+                            <button onClick={onOpenActions} className={`p-2 rounded-lg hover:bg-[#2C3B5C] ${isActionsOpen ? 'bg-[#2C3B5C]' : ''}`}>
+                                <ActionsMenuIcon className="w-7 h-7" />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-2xl">✨</span>
+                        <span className="text-white text-2xl font-bold">CodeMentor AI</span>
+                    </div>
+                    <div className="w-[120px] hidden md:block"></div>
+                </div>
+            </div>
+        </nav>
+    );
+}
 
 function Toast({ type, message, onClose }) {
     const colors = {
@@ -20,58 +140,18 @@ function Toast({ type, message, onClose }) {
     );
 }
 
-function Navbar() {
-    return (
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A192F] shadow-lg">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-center items-center h-16">
-                    <div className="flex items-center gap-2">
-                        <span className="text-2xl">✨</span>
-                        <span className="text-white text-2xl font-bold">CodeMentor AI</span>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    );
-}
-
-function Sidebar({ onNav }) {
-    return (
-        <aside className="flex flex-col gap-4 py-8 px-2 md:px-4 bg-[#1B2A4B] min-w-[120px] w-full max-w-[280px] h-screen">
-            <button
-                className="flex items-center gap-3 rounded-lg px-4 py-3 font-semibold text-white hover:bg-[#2C3B5C] transition text-base w-full bg-[#243351]"
-                onClick={() => onNav('exam')}
-            >
-                <span role="img" aria-label="edit" className="text-xl">📝</span>
-                <span className="hidden md:inline">Take Exam</span>
-            </button>
-            <button
-                className="flex items-center gap-3 rounded-lg px-4 py-3 font-semibold text-white hover:bg-[#2C3B5C] transition text-base w-full bg-[#243351]"
-                onClick={() => onNav('progress')}
-            >
-                <span role="img" aria-label="chart" className="text-xl">📈</span>
-                <span className="hidden md:inline">Progress</span>
-            </button>
-            <button
-                className="flex items-center gap-3 rounded-lg px-4 py-3 font-semibold text-white hover:bg-[#2C3B5C] transition text-base w-full bg-[#243351]"
-                onClick={() => onNav('chats')}
-            >
-                <span role="img" aria-label="chat" className="text-xl">💬</span>
-                <span className="hidden md:inline">Previous chats</span>
-            </button>
-        </aside>
-    );
-}
-
 function CodeReviewForm() {
     const [code, setCode] = useState('');
     const [learningMode, setLearningMode] = useState(false);
-    const [feedback, setFeedback] = useState(null);
     const [error, setError] = useState(null);
     const [toast, setToast] = useState(null);
     const [chat, setChat] = useState([]);
     const [hasPrompted, setHasPrompted] = useState(false);
     const [copiedButton, setCopiedButton] = useState(null);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [actionsOpen, setActionsOpen] = useState(false);
+    const [allChats, setAllChats] = useState([]);
+    const [currentChatId, setCurrentChatId] = useState(null);
     const chatContainerRef = useRef(null);
 
     const showToast = (type, message, duration = 2500) => {
@@ -112,7 +192,6 @@ function CodeReviewForm() {
             const data = await response.json();
             
             if (response.ok) {
-                setFeedback(data.feedback);
                 setChat(prev => [
                     ...prev,
                     { role: 'ai', content: Object.values(data.feedback).join('\n\n') }
@@ -134,13 +213,42 @@ function CodeReviewForm() {
         }
     }, [chat, hasPrompted]);
 
+    // New chat handler
+    const handleNewChat = () => {
+        if (chat.length > 0) setAllChats(prev => [...prev, chat]);
+        setChat([]);
+        setHasPrompted(false);
+        setCurrentChatId(null);
+    };
+
+    // Chat selection handler
+    const handleChatSelect = (chatId) => {
+        if (chat.length > 0 && currentChatId === null) setAllChats(prev => [...prev, chat]);
+        setChat(allChats[chatId]);
+        setCurrentChatId(chatId);
+        setHasPrompted(true);
+    };
+
+    // Action menu handler
+    const handleActionMenu = (action) => {
+        if (action === 'exam') showToast('error', 'Take Exam clicked!');
+        if (action === 'progress') showToast('error', 'Progress clicked!');
+    };
+
     // Responsive layout
     return (
         <div className="min-h-screen w-full h-screen flex flex-row overflow-hidden bg-[#0A192F]">
-            <Navbar />
-            <div className="hidden md:block min-w-[120px] bg-[#05101F]">
-                <Sidebar onNav={() => {}} />
-            </div>
+            <Navbar
+                onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+                onNewChat={handleNewChat}
+                onOpenActions={() => setActionsOpen(!actionsOpen)}
+                isSidebarOpen={sidebarOpen}
+                isActionsOpen={actionsOpen}
+            />
+            <Sidebar isOpen={sidebarOpen} chats={allChats} onChatSelect={handleChatSelect} currentChatId={currentChatId} />
+            {actionsOpen && (
+                <div className="fixed top-16 left-20 z-50"><ActionMenu isOpen={actionsOpen} onClose={() => setActionsOpen(false)} onAction={handleActionMenu} /></div>
+            )}
             <main className="flex-1 flex flex-col items-center w-full bg-[#0A192F] relative pt-16">
                 <div className="w-full flex flex-col items-center justify-start min-h-[calc(100vh-64px)] p-4">
                     {!hasPrompted ? (
