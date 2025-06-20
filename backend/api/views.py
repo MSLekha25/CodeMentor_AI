@@ -45,7 +45,7 @@ Code:
                 model=AZURE_OPENAI_DEPLOYMENT,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.2,
-                max_tokens=512
+                max_tokens=2048,
             )
             ai_feedback = response.choices[0].message.content
             return Response({'feedback': {'ai': ai_feedback}})
