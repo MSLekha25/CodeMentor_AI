@@ -269,7 +269,7 @@ function CodeReviewForm() {
                         <div className="flex flex-col items-center justify-center w-full h-full max-w-4xl mx-auto">
                             <form
                                 onSubmit={handleSubmit}
-                                className="w-full rounded-3xl bg-[#112240] border border-[#233554] shadow-2xl p-8 flex flex-row gap-4 items-center backdrop-blur-md"
+                                className="w-full max-w-4xl mx-auto rounded-3xl bg-[#112240] border border-[#233554] shadow-2xl p-8 flex flex-row gap-4 items-center backdrop-blur-md"
                             >
                                 <input
                                     className="flex-1 bg-[#1A2E4C] text-white placeholder:text-slate-300 border border-[#233554] outline-none text-lg px-4 py-3 rounded-xl focus:ring-2 focus:ring-[#64FFDA] focus:border-[#64FFDA] transition-colors"
@@ -400,22 +400,27 @@ function CodeReviewForm() {
                         </div>
                         <form
                             onSubmit={handleSubmit}
-                            className="fixed bottom-0 left-0 right-0 w-full max-w-4xl mx-auto rounded-3xl bg-[#112240] border border-[#233554] shadow-2xl p-6 flex flex-row gap-3 items-center backdrop-blur-md z-50"
-                            style={{margin: '0 auto'}}
+                            className="fixed bottom-0 left-0 w-full z-50 flex justify-center transition-all duration-300"
+                            style={sidebarOpen ? { marginLeft: '18rem', width: 'calc(100% - 18rem)', pointerEvents: 'none' } : { pointerEvents: 'none' }}
                         >
-                            <textarea
-                                className="flex-1 bg-[#1A2E4C] text-white placeholder:text-slate-300 border border-[#233554] outline-none text-lg px-4 py-3 rounded-xl focus:ring-2 resize-y min-h-[48px] max-h-40"
-                                placeholder="Message CodeMentor_AI"
-                                value={code}
-                                onChange={e => setCode(e.target.value)}
-                                required
-                            />
-                            <button
-                                type="submit"
-                                className="rounded-xl px-6 py-3 font-semibold text-white shadow-xl transition-all duration-200 transform hover:scale-105 flex items-center gap-2 text-lg drop-shadow-lg bg-gradient-to-r from-[#233554] to-[#1A2E4C] border-2 border-[#233554]"
+                            <div
+                                className="w-full max-w-4xl mx-auto rounded-3xl bg-[#112240] border border-[#233554] shadow-2xl p-6 flex flex-row gap-3 items-center backdrop-blur-md"
+                                style={{ pointerEvents: 'auto' }}
                             >
-                                <span className="ml-1">➤</span>
-                            </button>
+                                <textarea
+                                    className="flex-1 bg-[#1A2E4C] text-white placeholder:text-slate-300 border border-[#233554] outline-none text-lg px-4 py-3 rounded-xl focus:ring-2 resize-y min-h-[48px] max-h-40"
+                                    placeholder="Message CodeMentor_AI"
+                                    value={code}
+                                    onChange={e => setCode(e.target.value)}
+                                    required
+                                />
+                                <button
+                                    type="submit"
+                                    className="rounded-xl px-6 py-3 font-semibold text-white shadow-xl transition-all duration-200 transform hover:scale-105 flex items-center gap-2 text-lg drop-shadow-lg bg-gradient-to-r from-[#233554] to-[#1A2E4C] border-2 border-[#233554]"
+                                >
+                                    <span className="ml-1">➤</span>
+                                </button>
+                            </div>
                         </form>
                         </>
                     )}
