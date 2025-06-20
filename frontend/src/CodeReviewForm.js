@@ -142,8 +142,7 @@ function Navbar({ onToggleSidebar, onNewChat, onOpenActions, isSidebarOpen, isAc
                     </div>
                     {/* Centered app title */}
                     <div className="flex-1 flex justify-center items-center min-w-0">
-                        <span className="text-2xl">✨</span>
-                        <span className="text-white text-2xl font-bold ml-1 sm:ml-2 truncate">CodeMentor AI</span>
+                        <span className="text-white text-3xl md:text-4xl font-bold ml-1 sm:ml-2 truncate">CodeMentor AI</span>
                     </div>
                     {/* Hide right spacer on mobile, keep for desktop */}
                     <div className="w-4 sm:w-[120px] hidden sm:block"></div>
@@ -464,28 +463,57 @@ function CodeReviewForm() {
                                     )}
                                 </div>
                             </div>
+                            {/* Copilot/ChatGPT style input box, unified for before/after first prompt */}
                             <form
                                 onSubmit={handleSubmit}
                                 className="fixed bottom-0 left-0 w-full z-50 flex justify-center transition-all duration-300"
-                                style={sidebarOpen ? { marginLeft: '18rem', width: 'calc(100% - 18rem)', pointerEvents: 'none' } : { pointerEvents: 'none' }}
+                                style={sidebarOpen ? { marginLeft: '18rem', width: 'calc(100% - 18rem)' } : {}}
                             >
                                 <div
-                                    className="w-full max-w-4xl mx-auto rounded-3xl bg-[#112240] border border-[#233554] shadow-2xl p-6 flex flex-row gap-3 items-center backdrop-blur-md"
+                                    className="w-full max-w-4xl mx-auto rounded-3xl bg-gradient-to-br from-[#1A2E4C] via-[#112240] to-[#233554] border border-[#60A5FA] shadow-2xl p-3 flex flex-row items-center backdrop-blur-md mb-8"
                                     style={{ pointerEvents: 'auto' }}
                                 >
-                                    <textarea
-                                        className="flex-1 bg-[#1A2E4C] text-white placeholder:text-slate-300 border border-[#233554] outline-none text-lg px-4 py-3 rounded-xl focus:ring-2 resize-y min-h-[48px] max-h-40"
-                                        placeholder="Message CodeMentor_AI"
-                                        value={code}
-                                        onChange={e => setCode(e.target.value)}
-                                        required
-                                    />
-                                    <button
-                                        type="submit"
-                                        className="rounded-xl px-6 py-3 font-semibold text-white shadow-xl transition-all duration-200 transform hover:scale-105 flex items-center gap-2 text-lg drop-shadow-lg bg-gradient-to-r from-[#233554] to-[#1A2E4C] border-2 border-[#233554]"
-                                    >
-                                        <span className="ml-1">➤</span>
-                                    </button>
+                                    <div className="flex-1 flex items-center relative">
+                                        <textarea
+                                            className="w-full bg-[#192B45]/80 text-white placeholder:text-slate-300 outline-none text-lg px-3 py-2 rounded-2xl transition-colors shadow-lg backdrop-blur-md pr-12 border-none focus:border-none focus:ring-0 resize-none overflow-y-auto"
+                                            placeholder="Ask me anything about your code..."
+                                            value={code}
+                                            onChange={e => setCode(e.target.value)}
+                                            required
+                                            rows={1}
+                                            style={{ minHeight: '44px', maxHeight: '168px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                    e.preventDefault();
+                                                    handleSubmit(e);
+                                                }
+                                            }}
+                                            ref={el => {
+                                                if (el) {
+                                                    el.style.height = '44px';
+                                                    el.style.height = Math.min(el.scrollHeight, 168) + 'px';
+                                                    el.style.overflowY = el.scrollHeight > 168 ? 'auto' : 'hidden';
+                                                    el.style.scrollbarWidth = 'none'; // Firefox
+                                                    el.style.msOverflowStyle = 'none'; // IE/Edge
+                                                }
+                                            }}
+                                            onInput={e => {
+                                                const el = e.target;
+                                                el.style.height = '44px';
+                                                el.style.height = Math.min(el.scrollHeight, 168) + 'px';
+                                                el.style.overflowY = el.scrollHeight > 168 ? 'auto' : 'hidden';
+                                                el.style.scrollbarWidth = 'none';
+                                                el.style.msOverflowStyle = 'none';
+                                            }}
+                                        />
+                                        <button
+                                            type="submit"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-0 m-0 bg-transparent border-none shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none"
+                                            tabIndex={0}
+                                        >
+                                            <span className="ml-1 text-3xl text-[#60A5FA]">➤</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                             </>
