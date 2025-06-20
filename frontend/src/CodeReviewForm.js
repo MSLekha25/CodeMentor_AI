@@ -331,22 +331,28 @@ function CodeReviewForm() {
                                 </div>
                                 <form
                                     onSubmit={handleSubmit}
-                                    className="w-full max-w-4xl mx-auto rounded-3xl bg-gradient-to-br from-[#1A2E4C] via-[#112240] to-[#233554] border border-[#60A5FA] shadow-2xl p-3 flex flex-row items-center backdrop-blur-md mb-8"
+                                    className="w-full max-w-xl mx-auto rounded-3xl bg-gradient-to-br from-[#1A2E4C] via-[#112240] to-[#233554] border border-[#60A5FA] p-0 flex flex-row items-center backdrop-blur-md shadow-2xl"
+                                    style={{ boxShadow: '0 0 0 1.5px #60A5FA, 0 2px 16px 0 #112240', pointerEvents: 'auto', minHeight: 72 }}
                                 >
                                     <div className="flex-1 flex items-center relative">
                                         <input
-                                            className="w-full bg-[#192B45]/80 text-white placeholder:text-slate-300 outline-none text-lg px-3 py-2 rounded-2xl transition-colors shadow-lg backdrop-blur-md pr-12 border-none focus:border-none focus:ring-0"
+                                            className="w-full bg-transparent text-white placeholder:text-slate-300 outline-none text-xl px-6 py-5 rounded-3xl transition-colors pr-16 border-none focus:border-none focus:ring-0 font-normal"
                                             placeholder="Ask me anything about your code..."
                                             value={code}
                                             onChange={e => setCode(e.target.value)}
                                             required
+                                            style={{ minHeight: 56, height: 56, boxShadow: 'none' }}
                                         />
                                         <button
                                             type="submit"
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-0 m-0 bg-transparent border-none shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none"
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-2xl bg-transparent border-none shadow-none hover:bg-[#233554] transition-colors"
                                             tabIndex={0}
+                                            style={{ padding: 0, margin: 0 }}
                                         >
-                                            <span className="ml-1 text-3xl text-[#60A5FA]">➤</span>
+                                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M8 16H24" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                <path d="M18 10L24 16L18 22" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
                                         </button>
                                     </div>
                                 </form>
@@ -470,18 +476,18 @@ function CodeReviewForm() {
                                 style={sidebarOpen ? { marginLeft: '18rem', width: 'calc(100% - 18rem)' } : {}}
                             >
                                 <div
-                                    className="w-full max-w-4xl mx-auto rounded-3xl bg-gradient-to-br from-[#1A2E4C] via-[#112240] to-[#233554] border border-[#60A5FA] shadow-2xl p-3 flex flex-row items-center backdrop-blur-md mb-8"
+                                    className="w-full max-w-xl mx-auto rounded-3xl bg-gradient-to-br from-[#1A2E4C] via-[#112240] to-[#233554] border border-[#60A5FA] shadow-2xl p-3 flex flex-row items-center backdrop-blur-md mb-8"
                                     style={{ pointerEvents: 'auto' }}
                                 >
                                     <div className="flex-1 flex items-center relative">
                                         <textarea
-                                            className="w-full bg-[#192B45]/80 text-white placeholder:text-slate-300 outline-none text-lg px-3 py-2 rounded-2xl transition-colors shadow-lg backdrop-blur-md pr-12 border-none focus:border-none focus:ring-0 resize-none overflow-y-auto"
+                                            className="w-full bg-[#192B45]/80 text-white placeholder:text-slate-300 outline-none text-lg px-3 py-4 rounded-2xl transition-colors shadow-lg backdrop-blur-md pr-12 border-none focus:border-none focus:ring-0 resize-none overflow-y-auto"
                                             placeholder="Ask me anything about your code..."
                                             value={code}
                                             onChange={e => setCode(e.target.value)}
                                             required
                                             rows={1}
-                                            style={{ minHeight: '44px', maxHeight: '168px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                            style={{ minHeight: '56px', maxHeight: '168px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                                             onKeyDown={e => {
                                                 if (e.key === 'Enter' && !e.shiftKey) {
                                                     e.preventDefault();
@@ -490,7 +496,7 @@ function CodeReviewForm() {
                                             }}
                                             ref={el => {
                                                 if (el) {
-                                                    el.style.height = '44px';
+                                                    el.style.height = '56px';
                                                     el.style.height = Math.min(el.scrollHeight, 168) + 'px';
                                                     el.style.overflowY = el.scrollHeight > 168 ? 'auto' : 'hidden';
                                                     el.style.scrollbarWidth = 'none'; // Firefox
@@ -499,7 +505,7 @@ function CodeReviewForm() {
                                             }}
                                             onInput={e => {
                                                 const el = e.target;
-                                                el.style.height = '44px';
+                                                el.style.height = '56px';
                                                 el.style.height = Math.min(el.scrollHeight, 168) + 'px';
                                                 el.style.overflowY = el.scrollHeight > 168 ? 'auto' : 'hidden';
                                                 el.style.scrollbarWidth = 'none';
