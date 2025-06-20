@@ -336,12 +336,12 @@ function CodeReviewForm() {
                                 >
                                     <div className="flex-1 flex items-center relative">
                                         <input
-                                            className="w-full bg-transparent text-white placeholder:text-slate-300 outline-none text-xl px-6 py-5 rounded-3xl transition-colors pr-16 border-none focus:border-none focus:ring-0 font-normal"
+                                            className="w-full bg-transparent text-white placeholder:text-slate-300 outline-none text-xl px-6 py-5 rounded-3xl transition-colors pr-16 border-none focus:border-none focus:ring-0 font-normal break-all whitespace-pre-line overflow-wrap break-words word-break"
                                             placeholder="Ask me anything about your code..."
                                             value={code}
                                             onChange={e => setCode(e.target.value)}
                                             required
-                                            style={{ minHeight: 56, height: 56, boxShadow: 'none' }}
+                                            style={{ minHeight: 56, height: 56, boxShadow: 'none', wordBreak: 'break-all', overflowWrap: 'break-word', whiteSpace: 'pre-line' }}
                                         />
                                         <button
                                             type="submit"
@@ -369,10 +369,11 @@ function CodeReviewForm() {
                                         msg.role === 'user' ? (
                                             <div
                                                 key={idx}
-                                                className="self-end max-w-2xl w-fit rounded-2xl px-6 py-4 mb-2 shadow-lg text-base font-medium animate-fade-in bg-[#1A2E4C] text-white"
+                                                className="self-end max-w-2xl w-fit rounded-2xl px-6 py-4 mb-2 shadow-lg text-base font-medium animate-fade-in bg-[#1A2E4C] text-white break-all whitespace-pre-line overflow-wrap break-words word-break"
+                                                style={{ wordBreak: 'break-all', overflowWrap: 'break-word', whiteSpace: 'pre-line' }}
                                             >
                                                 <span className="opacity-80 text-xs font-semibold tracking-wide text-slate-300">You</span>
-                                                <div className="whitespace-pre-line mt-1">{msg.content}</div>
+                                                <div className="whitespace-pre-line break-all overflow-wrap break-words word-break" style={{ wordBreak: 'break-all', overflowWrap: 'break-word', whiteSpace: 'pre-line' }}>{msg.content}</div>
                                             </div>
                                         ) : (
                                             <div
@@ -481,13 +482,13 @@ function CodeReviewForm() {
                                 >
                                     <div className="flex-1 flex items-center relative">
                                         <textarea
-                                            className="w-full bg-[#192B45]/80 text-white placeholder:text-slate-300 outline-none text-lg px-3 py-4 rounded-2xl transition-colors shadow-lg backdrop-blur-md pr-12 border-none focus:border-none focus:ring-0 resize-none overflow-y-auto"
+                                            className="w-full bg-[#192B45]/80 text-white placeholder:text-slate-300 outline-none text-lg px-3 py-4 rounded-2xl transition-colors shadow-lg backdrop-blur-md pr-12 border-none focus:border-none focus:ring-0 resize-none overflow-y-auto break-all whitespace-pre-line overflow-wrap break-words word-break"
                                             placeholder="Ask me anything about your code..."
                                             value={code}
                                             onChange={e => setCode(e.target.value)}
                                             required
                                             rows={1}
-                                            style={{ minHeight: '56px', maxHeight: '168px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                            style={{ minHeight: '56px', maxHeight: '168px', scrollbarWidth: 'none', msOverflowStyle: 'none', wordBreak: 'break-all', overflowWrap: 'break-word', whiteSpace: 'pre-line' }}
                                             onKeyDown={e => {
                                                 if (e.key === 'Enter' && !e.shiftKey) {
                                                     e.preventDefault();
@@ -501,6 +502,9 @@ function CodeReviewForm() {
                                                     el.style.overflowY = el.scrollHeight > 168 ? 'auto' : 'hidden';
                                                     el.style.scrollbarWidth = 'none'; // Firefox
                                                     el.style.msOverflowStyle = 'none'; // IE/Edge
+                                                    el.style.wordBreak = 'break-all';
+                                                    el.style.overflowWrap = 'break-word';
+                                                    el.style.whiteSpace = 'pre-line';
                                                 }
                                             }}
                                             onInput={e => {
@@ -510,6 +514,9 @@ function CodeReviewForm() {
                                                 el.style.overflowY = el.scrollHeight > 168 ? 'auto' : 'hidden';
                                                 el.style.scrollbarWidth = 'none';
                                                 el.style.msOverflowStyle = 'none';
+                                                el.style.wordBreak = 'break-all';
+                                                el.style.overflowWrap = 'break-word';
+                                                el.style.whiteSpace = 'pre-line';
                                             }}
                                         />
                                         <button
