@@ -99,14 +99,26 @@ function Navbar({ onToggleSidebar, onNewChat, onOpenActions, isSidebarOpen, isAc
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     <div className="flex items-center gap-2 relative ml-0">
-                        <button onClick={onToggleSidebar} className={`p-2 rounded-lg hover:bg-[#2C3B5C] ${isSidebarOpen ? 'bg-[#2C3B5C]' : ''}`}>
+                        <button
+                            onClick={onToggleSidebar}
+                            className={`p-2 rounded-lg hover:bg-[#2C3B5C] ${isSidebarOpen ? 'bg-[#2C3B5C]' : ''}`}
+                            title={isSidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}
+                        >
                             <SidebarIcon className="w-7 h-7" />
                         </button>
-                        <button onClick={onNewChat} className="p-2 rounded-lg hover:bg-[#2C3B5C]">
+                        <button
+                            onClick={onNewChat}
+                            className="p-2 rounded-lg hover:bg-[#2C3B5C]"
+                            title="New chat"
+                        >
                             <FaEdit className="text-white w-7 h-7" />
                         </button>
                         <div className="relative">
-                            <button onClick={onOpenActions} className={`p-2 rounded-lg hover:bg-[#2C3B5C] ${isActionsOpen ? 'bg-[#2C3B5C]' : ''}`}>
+                            <button
+                                onClick={onOpenActions}
+                                className={`p-2 rounded-lg hover:bg-[#2C3B5C] ${isActionsOpen ? 'bg-[#2C3B5C]' : ''}`}
+                                title="Open Actions Menu"
+                            >
                                 <ActionsMenuIcon className="w-7 h-7" />
                             </button>
                         </div>
@@ -249,7 +261,9 @@ function CodeReviewForm() {
             {actionsOpen && (
                 <div className="fixed top-16 left-20 z-50"><ActionMenu isOpen={actionsOpen} onClose={() => setActionsOpen(false)} onAction={handleActionMenu} /></div>
             )}
-            <main className="flex-1 flex flex-col items-center w-full bg-[#0A192F] relative pt-16">
+            <main
+                className={`flex-1 flex flex-col items-center w-full bg-[#0A192F] relative pt-16 transition-all duration-300 ${sidebarOpen ? 'ml-72' : 'ml-0'}`}
+            >
                 <div className="w-full flex flex-col items-center justify-start min-h-[calc(100vh-64px)] p-4">
                     {!hasPrompted ? (
                         <div className="flex flex-col items-center justify-center w-full h-full max-w-4xl mx-auto">
