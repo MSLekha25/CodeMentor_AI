@@ -219,6 +219,7 @@ function CodeReviewForm() {
     const [allChats, setAllChats] = useState([]);
     const [currentChatId, setCurrentChatId] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
     const chatContainerRef = useRef(null);
 
     const showToast = (type, message, duration = 2500) => {
@@ -242,14 +243,13 @@ function CodeReviewForm() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!code.trim()) return;
+        if (!code.trim() || loading) return;
         setError(null);
-
+        setLoading(true);
         setChat(prev => [...prev, { role: 'user', content: code }]);
         setHasPrompted(true);
         const prompt = code;
         setCode(''); // Clear input immediately
-
         try {
             const response = await fetch('http://127.0.0.1:8000/api/code-review/', {
                 method: 'POST',
@@ -257,7 +257,6 @@ function CodeReviewForm() {
                 body: JSON.stringify({ code: prompt, language: 'python', learning_mode: learningMode })
             });
             const data = await response.json();
-            
             if (response.ok) {
                 setChat(prev => [
                     ...prev,
@@ -270,6 +269,8 @@ function CodeReviewForm() {
         } catch (err) {
             setError('Network error');
             showToast('error', 'Error: Couldn’t fetch response.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -329,6 +330,7 @@ function CodeReviewForm() {
                                         <span className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg tracking-tight">Stuck on something?  Let’s crack it together.</span>
                                     </div>
                                 </div>
+                                {/* Input area before first prompt */}
                                 <form
                                     onSubmit={handleSubmit}
                                     className="w-full max-w-xl mx-auto rounded-3xl bg-gradient-to-br from-[#1A2E4C] via-[#112240] to-[#233554] border border-[#60A5FA] p-0 flex flex-row items-center backdrop-blur-md shadow-2xl"
@@ -341,19 +343,29 @@ function CodeReviewForm() {
                                             value={code}
                                             onChange={e => setCode(e.target.value)}
                                             required
+                                            disabled={loading}
                                             style={{ minHeight: 56, height: 56, boxShadow: 'none', wordBreak: 'break-all', overflowWrap: 'break-word', whiteSpace: 'pre-line' }}
                                         />
-                                        <button
-                                            type="submit"
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-2xl bg-transparent border-none shadow-none hover:bg-[#233554] transition-colors"
-                                            tabIndex={0}
-                                            style={{ padding: 0, margin: 0 }}
-                                        >
-                                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M8 16H24" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                <path d="M18 10L24 16L18 22" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                            </svg>
-                                        </button>
+                                        {loading ? (
+                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center">
+                                                <svg className="animate-spin" width="28" height="28" viewBox="0 0 24 24" fill="none">
+                                                    <circle cx="12" cy="12" r="10" stroke="#60A5FA" strokeWidth="4" opacity="0.2" />
+                                                    <path d="M22 12a10 10 0 0 1-10 10" stroke="#60A5FA" strokeWidth="4" strokeLinecap="round" />
+                                                </svg>
+                                            </span>
+                                        ) : (
+                                            <button
+                                                type="submit"
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-2xl bg-transparent border-none shadow-none hover:bg-[#233554] transition-colors"
+                                                tabIndex={0}
+                                                style={{ padding: 0, margin: 0 }}
+                                            >
+                                                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M8 16H24" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    <path d="M18 10L24 16L18 22" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                </svg>
+                                            </button>
+                                        )}
                                     </div>
                                 </form>
                             </div>
@@ -488,6 +500,7 @@ function CodeReviewForm() {
                                             onChange={e => setCode(e.target.value)}
                                             required
                                             rows={1}
+                                            disabled={loading}
                                             style={{ minHeight: '56px', maxHeight: '168px', scrollbarWidth: 'none', msOverflowStyle: 'none', wordBreak: 'break-all', overflowWrap: 'break-word', whiteSpace: 'pre-line' }}
                                             onKeyDown={e => {
                                                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -519,13 +532,22 @@ function CodeReviewForm() {
                                                 el.style.whiteSpace = 'pre-line';
                                             }}
                                         />
-                                        <button
-                                            type="submit"
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-0 m-0 bg-transparent border-none shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none"
-                                            tabIndex={0}
-                                        >
-                                            <span className="ml-1 text-3xl text-[#60A5FA]">➤</span>
-                                        </button>
+                                        {loading ? (
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center">
+                                                <svg className="animate-spin" width="28" height="28" viewBox="0 0 24 24" fill="none">
+                                                    <circle cx="12" cy="12" r="10" stroke="#60A5FA" strokeWidth="4" opacity="0.2" />
+                                                    <path d="M22 12a10 10 0 0 1-10 10" stroke="#60A5FA" strokeWidth="4" strokeLinecap="round" />
+                                                </svg>
+                                            </span>
+                                        ) : (
+                                            <button
+                                                type="submit"
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 p-0 m-0 bg-transparent border-none shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none"
+                                                tabIndex={0}
+                                            >
+                                                <span className="ml-1 text-3xl text-[#60A5FA]">➤</span>
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </form>
