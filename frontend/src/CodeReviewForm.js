@@ -337,14 +337,48 @@ function CodeReviewForm() {
                                     style={{ boxShadow: '0 0 0 1.5px #60A5FA, 0 2px 16px 0 #112240', pointerEvents: 'auto', minHeight: 72 }}
                                 >
                                     <div className="flex-1 flex items-center relative">
-                                        <input
-                                            className="w-full bg-transparent text-white placeholder:text-slate-300 outline-none text-xl px-6 py-5 rounded-3xl transition-colors pr-16 border-none focus:border-none focus:ring-0 font-normal break-all whitespace-pre-line overflow-wrap break-words word-break"
+                                        <textarea
+                                            className="w-full bg-transparent text-white placeholder:text-slate-300 outline-none text-xl px-6 py-5 rounded-3xl transition-colors pr-16 border-none focus:border-none focus:ring-0 font-mono break-all whitespace-pre font-mono overflow-wrap break-words word-break resize-none overflow-y-auto text-left"
                                             placeholder="Ask me anything about your code..."
                                             value={code}
                                             onChange={e => setCode(e.target.value)}
                                             required
                                             disabled={loading}
-                                            style={{ minHeight: 56, height: 56, boxShadow: 'none', wordBreak: 'break-all', overflowWrap: 'break-word', whiteSpace: 'pre-line' }}
+                                            rows={1}
+                                            style={{ minHeight: 56, maxHeight: 168, height: '56px', boxShadow: 'none', wordBreak: 'break-all', overflowWrap: 'break-word', whiteSpace: 'pre', scrollbarWidth: 'none', msOverflowStyle: 'none', fontFamily: 'Fira Mono, Menlo, monospace', textAlign: 'left' }}
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                    e.preventDefault();
+                                                    handleSubmit(e);
+                                                }
+                                            }}
+                                            ref={el => {
+                                                if (el) {
+                                                    el.style.height = '56px';
+                                                    el.style.height = Math.min(el.scrollHeight, 168) + 'px';
+                                                    el.style.overflowY = el.scrollHeight > 168 ? 'auto' : 'hidden';
+                                                    el.style.scrollbarWidth = 'none'; // Firefox
+                                                    el.style.msOverflowStyle = 'none'; // IE/Edge
+                                                    el.style.wordBreak = 'break-all';
+                                                    el.style.overflowWrap = 'break-word';
+                                                    el.style.whiteSpace = 'pre';
+                                                    el.style.fontFamily = 'Fira Mono, Menlo, monospace';
+                                                    el.style.textAlign = 'left';
+                                                }
+                                            }}
+                                            onInput={e => {
+                                                const el = e.target;
+                                                el.style.height = '56px';
+                                                el.style.height = Math.min(el.scrollHeight, 168) + 'px';
+                                                el.style.overflowY = el.scrollHeight > 168 ? 'auto' : 'hidden';
+                                                el.style.scrollbarWidth = 'none';
+                                                el.style.msOverflowStyle = 'none';
+                                                el.style.wordBreak = 'break-all';
+                                                el.style.overflowWrap = 'break-word';
+                                                el.style.whiteSpace = 'pre';
+                                                el.style.fontFamily = 'Fira Mono, Menlo, monospace';
+                                                el.style.textAlign = 'left';
+                                            }}
                                         />
                                         {loading ? (
                                             <span className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center">
@@ -385,7 +419,7 @@ function CodeReviewForm() {
                                                 style={{ wordBreak: 'break-all', overflowWrap: 'break-word', whiteSpace: 'pre-line' }}
                                             >
                                                 <span className="opacity-80 text-xs font-semibold tracking-wide text-slate-300">You</span>
-                                                <div className="whitespace-pre-line break-all overflow-wrap break-words word-break" style={{ wordBreak: 'break-all', overflowWrap: 'break-word', whiteSpace: 'pre-line' }}>{msg.content}</div>
+                                                <pre className="mt-2 font-mono text-[1.08em] text-left bg-transparent border-none p-0 m-0 leading-relaxed whitespace-pre break-words" style={{fontFamily: 'Fira Mono, Menlo, monospace', background: 'none', border: 'none', textAlign: 'left', whiteSpace: 'pre'}}>{msg.content}</pre>
                                             </div>
                                         ) : (
                                             <div
