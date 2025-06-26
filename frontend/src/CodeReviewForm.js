@@ -55,7 +55,7 @@ function Sidebar({ isOpen, chats, onChatSelect, currentChatId }) {
     );
 }
 
-function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, setMobileMenuOpen, userSignedUp, setUserSignedUp }) {
+function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, setMobileMenuOpen, userSignedUp, setUserSignedUp, onLogin }) {
     const [signupOpen, setSignupOpen] = useState(false);
     const handleSignup = async (data) => {
         await fetch('http://127.0.0.1:8000/api/signup/', {
@@ -158,7 +158,7 @@ function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, set
                 )}
             </div>
         </nav>
-        <SignupModal isOpen={signupOpen} onClose={() => setSignupOpen(false)} onSubmit={handleSignup} />
+        <SignupModal isOpen={signupOpen} onClose={() => setSignupOpen(false)} onSubmit={handleSignup} onLogin={onLogin} />
         </>
     );
 }
@@ -183,7 +183,6 @@ function Toast({ type, message, onClose }) {
 
 function CodeReviewForm() {
     const [code, setCode] = useState('');
-    const [learningMode, setLearningMode] = useState(false);
     const [error, setError] = useState(null);
     const [toast, setToast] = useState(null);
     const [chat, setChat] = useState([]);
@@ -194,7 +193,6 @@ function CodeReviewForm() {
     const [currentChatId, setCurrentChatId] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [user, setUser] = useState(null);
     const [userSignedUp, setUserSignedUp] = useState(false);
     const chatContainerRef = useRef(null);
 
@@ -230,7 +228,7 @@ function CodeReviewForm() {
             const response = await fetch('http://127.0.0.1:8000/api/code-review/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: prompt, language: 'python', learning_mode: learningMode })
+                body: JSON.stringify({ code: prompt, language: 'python' })
             });
             const data = await response.json();
             if (response.ok) {
@@ -273,6 +271,12 @@ function CodeReviewForm() {
         setHasPrompted(true);
     };
 
+    // Login handler
+    const handleLogin = async ({ email, password }) => {
+        // Dummy login: always succeed for demo
+        setUserSignedUp(true);
+    };
+
     // Responsive layout
     return (
         <div className="min-h-screen w-full h-screen flex flex-col bg-[#0A192F]">
@@ -284,6 +288,7 @@ function CodeReviewForm() {
                 setMobileMenuOpen={setMobileMenuOpen}
                 userSignedUp={userSignedUp}
                 setUserSignedUp={setUserSignedUp}
+                onLogin={handleLogin}
             />
             <div className="flex-1 flex flex-row w-full overflow-hidden pt-16">
                 <Sidebar isOpen={sidebarOpen} chats={allChats} onChatSelect={handleChatSelect} currentChatId={currentChatId} />
@@ -571,7 +576,8 @@ function CodeReviewForm() {
     );
 }
 
-function SignupModal({ isOpen, onClose, onSubmit }) {
+function SignupModal({ isOpen, onClose, onSubmit, onLogin }) {
+    const [isLogin, setIsLogin] = useState(false);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -584,13 +590,17 @@ function SignupModal({ isOpen, onClose, onSubmit }) {
         setLoading(true);
         setError(null);
         try {
-            await onSubmit({ name, email, password });
+            if (isLogin) {
+                await onLogin({ email, password });
+            } else {
+                await onSubmit({ name, email, password });
+            }
             setName('');
             setEmail('');
             setPassword('');
             onClose();
         } catch (err) {
-            setError('Signup failed.');
+            setError(isLogin ? 'Login failed.' : 'Signup failed.');
         } finally {
             setLoading(false);
         }
@@ -601,16 +611,18 @@ function SignupModal({ isOpen, onClose, onSubmit }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-[#112240] rounded-2xl shadow-2xl p-8 w-full max-w-md relative">
                 <button onClick={onClose} className="absolute top-3 right-4 text-white text-2xl font-bold hover:opacity-70">×</button>
-                <h2 className="text-2xl font-bold text-white mb-6 text-center">Sign Up</h2>
+                <h2 className="text-2xl font-bold text-white mb-6 text-center">{isLogin ? 'Sign In' : 'Sign Up'}</h2>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <input
-                        type="text"
-                        placeholder="Name"
-                        className="rounded-lg px-4 py-3 bg-[#1B2A4B] text-white placeholder:text-slate-400 focus:outline-none"
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                        required
-                    />
+                    {!isLogin && (
+                        <input
+                            type="text"
+                            placeholder="Name"
+                            className="rounded-lg px-4 py-3 bg-[#1B2A4B] text-white placeholder:text-slate-400 focus:outline-none"
+                            value={name}
+                            onChange={e => setName(e.target.value)}
+                            required
+                        />
+                    )}
                     <input
                         type="email"
                         placeholder="Email"
@@ -644,8 +656,25 @@ function SignupModal({ isOpen, onClose, onSubmit }) {
                         className="mt-2 rounded-xl bg-[#60A5FA] text-[#0A192F] font-bold py-3 text-lg hover:bg-[#3B82F6] transition-colors"
                         disabled={loading}
                     >
-                        {loading ? 'Signing up...' : 'Sign Up'}
+                        {loading ? (isLogin ? 'Signing in...' : 'Signing up...') : (isLogin ? 'Sign In' : 'Sign Up')}
                     </button>
+                    <div className="text-center text-slate-300 text-sm mt-2">
+                        {isLogin ? (
+                            <>
+                                Don&apos;t have an account?{' '}
+                                <button type="button" className="text-[#60A5FA] hover:underline font-bold" onClick={() => { setIsLogin(false); setError(null); }}>
+                                    Sign up
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                Already have an account?{' '}
+                                <button type="button" className="text-[#60A5FA] hover:underline font-bold" onClick={() => { setIsLogin(true); setError(null); }}>
+                                    Sign in
+                                </button>
+                            </>
+                        )}
+                    </div>
                 </form>
             </div>
         </div>
