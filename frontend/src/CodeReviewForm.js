@@ -4,7 +4,6 @@ import remarkGfm from 'remark-gfm';
 import { FaRegSquare, FaEdit, FaCog } from 'react-icons/fa';
 import { HiOutlineViewBoards } from 'react-icons/hi';
 import { RxDashboard } from 'react-icons/rx';
-import { FiEdit, FiTrendingUp } from 'react-icons/fi';
 
 // Custom SidebarIcon SVG component
 function SidebarIcon({ className = "w-7 h-7" }) {
@@ -21,43 +20,6 @@ function SidebarIcon({ className = "w-7 h-7" }) {
             <rect x="10" y="20" width="10" height="3" rx="1.5" fill="#FFFFFF" />
             <rect x="10" y="28" width="10" height="3" rx="1.5" fill="#FFFFFF" />
         </svg>
-    );
-}
-
-// Custom ActionsMenuIcon SVG component
-function ActionsMenuIcon({ className = "w-7 h-7" }) {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className={className}
-        >
-            <rect x="3" y="3" width="6" height="6" rx="1.5" stroke="#FFFFFF" strokeWidth="2" fill="none" />
-            <rect x="15" y="3" width="6" height="6" rx="1.5" stroke="#FFFFFF" strokeWidth="2" fill="none" />
-            <rect x="3" y="15" width="6" height="6" rx="1.5" stroke="#FFFFFF" strokeWidth="2" fill="none" />
-            <rect x="15" y="15" width="6" height="6" rx="1.5" stroke="#FFFFFF" strokeWidth="2" fill="none" />
-        </svg>
-    );
-}
-
-function ActionMenu({ isOpen, onClose, onAction }) {
-    if (!isOpen) return null;
-    return (
-        <div className="absolute left-0 mt-2 w-48 bg-[#1B2A4B] rounded-lg shadow-lg border border-[#233554] z-50">
-            <button
-                onClick={() => { onAction('exam'); onClose(); }}
-                className="flex items-center w-full px-4 py-3 text-white hover:bg-[#2C3B5C] transition-colors gap-2"
-            >
-                <FiEdit className="text-[#64FFDA] text-lg" /> Take Exam
-            </button>
-            <button
-                onClick={() => { onAction('progress'); onClose(); }}
-                className="flex items-center w-full px-4 py-3 text-white hover:bg-[#2C3B5C] transition-colors gap-2"
-            >
-                <FiTrendingUp className="text-[#FFD700] text-lg" /> Progress
-            </button>
-        </div>
     );
 }
 
@@ -93,7 +55,7 @@ function Sidebar({ isOpen, chats, onChatSelect, currentChatId }) {
     );
 }
 
-function Navbar({ onToggleSidebar, onNewChat, onOpenActions, isSidebarOpen, isActionsOpen, mobileMenuOpen, setMobileMenuOpen, handleActionMenu }) {
+function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, setMobileMenuOpen }) {
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A192F] shadow-lg">
             <div className="max-w-7xl mx-auto px-0 sm:px-2 lg:px-4">
@@ -123,21 +85,6 @@ function Navbar({ onToggleSidebar, onNewChat, onOpenActions, isSidebarOpen, isAc
                             >
                                 <FaEdit className="text-white w-7 h-7" />
                             </button>
-                            <div className="relative">
-                                <button
-                                    onClick={onOpenActions}
-                                    className={`p-2 rounded-lg hover:bg-[#2C3B5C] ${isActionsOpen ? 'bg-[#2C3B5C]' : ''}`}
-                                    title="Open Actions Menu"
-                                >
-                                    <ActionsMenuIcon className="w-7 h-7" />
-                                </button>
-                                {/* Show ActionMenu dropdown below the button */}
-                                {isActionsOpen && (
-                                    <div className="absolute left-0 top-full mt-2 z-50">
-                                        <ActionMenu isOpen={isActionsOpen} onClose={onOpenActions} onAction={handleActionMenu} />
-                                    </div>
-                                )}
-                            </div>
                         </div>
                     </div>
                     {/* Centered app title */}
@@ -172,13 +119,6 @@ function Navbar({ onToggleSidebar, onNewChat, onOpenActions, isSidebarOpen, isAc
                             >
                                 <FaEdit className="w-7 h-7" />
                                 <span>New Chat</span>
-                            </button>
-                            <button
-                                onClick={() => { onOpenActions(); setMobileMenuOpen(false); }}
-                                className="flex items-center gap-2 p-2 rounded-lg hover:bg-[#2C3B5C] text-white"
-                            >
-                                <ActionsMenuIcon className="w-7 h-7" />
-                                <span>Actions</span>
                             </button>
                         </div>
                     </div>
@@ -215,7 +155,6 @@ function CodeReviewForm() {
     const [hasPrompted, setHasPrompted] = useState(false);
     const [copiedButton, setCopiedButton] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [actionsOpen, setActionsOpen] = useState(false);
     const [allChats, setAllChats] = useState([]);
     const [currentChatId, setCurrentChatId] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -297,24 +236,15 @@ function CodeReviewForm() {
         setHasPrompted(true);
     };
 
-    // Action menu handler
-    const handleActionMenu = (action) => {
-        if (action === 'exam') showToast('error', 'Take Exam clicked!');
-        if (action === 'progress') showToast('error', 'Progress clicked!');
-    };
-
     // Responsive layout
     return (
         <div className="min-h-screen w-full h-screen flex flex-col bg-[#0A192F]">
             <Navbar
                 onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
                 onNewChat={handleNewChat}
-                onOpenActions={() => setActionsOpen(!actionsOpen)}
                 isSidebarOpen={sidebarOpen}
-                isActionsOpen={actionsOpen}
                 mobileMenuOpen={mobileMenuOpen}
                 setMobileMenuOpen={setMobileMenuOpen}
-                handleActionMenu={handleActionMenu}
             />
             <div className="flex-1 flex flex-row w-full overflow-hidden pt-16">
                 <Sidebar isOpen={sidebarOpen} chats={allChats} onChatSelect={handleChatSelect} currentChatId={currentChatId} />
