@@ -17,6 +17,9 @@ class ChatHistory(models.Model):
     messages = models.JSONField(default=list)  # List of {role, content}
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(SignupLog, null=True, blank=True, on_delete=models.SET_NULL, related_name='chats')
 
     def __str__(self):
         return f"ChatHistory {self.session_id} ({self.created_at})"
+
+# NOTE: Run makemigrations and migrate after this change.

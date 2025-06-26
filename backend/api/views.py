@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view
 import openai
 import os
 from django.utils.crypto import get_random_string
+from django.db.models import Q
 
 # from dotenv import load_dotenv
 
@@ -32,6 +33,40 @@ class MultiTurnCodeReviewSerializer(serializers.Serializer):
     session_id = serializers.CharField(required=False, allow_blank=True)
 
 @api_view(['POST'])
+def fetch_user_chats(request):
+    """
+    Expects: {"email": "user@example.com"}
+    Returns: [
+      {"id": chat_id, "session_id": ..., "name": ..., "messages": [...]}, ...
+    ]
+    """
+    email = request.data.get('email')
+    if not email:
+        return Response({'error': 'Email required'}, status=400)
+    user = SignupLog.objects.filter(email=email).first()
+    if not user:
+        return Response({'chats': []})
+    chats = ChatHistory.objects.filter(user=user).order_by('-updated_at')
+    chat_list = []
+    for chat in chats:
+        # Name: first user message, or fallback
+        name = None
+        for msg in chat.messages:
+            if msg.get('role') == 'user' and msg.get('content'):
+                name = msg['content'].strip().split('\n')[0][:60]
+                break
+        if not name:
+            name = f"Chat {chat.id}"
+        chat_list.append({
+            'id': chat.id,
+            'session_id': chat.session_id,
+            'name': name,
+            'messages': chat.messages,
+            'updated_at': chat.updated_at,
+        })
+    return Response({'chats': chat_list})
+
+@api_view(['POST'])
 def code_review(request):
     # Multi-turn: prefer messages, fallback to old code
     if 'messages' in request.data:
@@ -40,9 +75,15 @@ def code_review(request):
             messages = serializer.validated_data['messages']
             learning_mode = serializer.validated_data.get('learning_mode', False)
             session_id = serializer.validated_data.get('session_id') or get_random_string(32)
+            email = request.data.get('email')
+            user = None
+            if email:
+                user = SignupLog.objects.filter(email=email).first()
             # Save or update chat history
             chat_obj, _ = ChatHistory.objects.get_or_create(session_id=session_id)
             chat_obj.messages = messages
+            if user:
+                chat_obj.user = user
             chat_obj.save()
             try:
                 openai.api_type = "azure"

@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { FaRegSquare, FaEdit, FaCog, FaUser, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEdit, FaUser, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { HiOutlineViewBoards } from 'react-icons/hi';
 import { RxDashboard } from 'react-icons/rx';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+dayjs.extend(relativeTime);
 
 // Custom SidebarIcon SVG component
 function SidebarIcon({ className = "w-7 h-7" }) {
@@ -24,47 +27,49 @@ function SidebarIcon({ className = "w-7 h-7" }) {
 }
 
 function Sidebar({ isOpen, chats, onChatSelect, currentChatId }) {
+    // Group chats by date: Today, Yesterday, or date
+    const grouped = {};
+    chats.forEach((chat, idx) => {
+        const date = chat.updated_at ? dayjs(chat.updated_at) : null;
+        let group = 'Unknown';
+        if (date) {
+            if (date.isSame(dayjs(), 'day')) group = 'Today';
+            else if (date.isSame(dayjs().subtract(1, 'day'), 'day')) group = 'Yesterday';
+            else group = date.format('MMMM D, YYYY');
+        }
+        if (!grouped[group]) grouped[group] = [];
+        grouped[group].push({ ...chat, idx });
+    });
     return (
         <aside className={`fixed top-16 left-0 h-[calc(100vh-64px)] bg-[#1B2A4B] z-40 transition-all duration-300 shadow-lg ${isOpen ? 'w-72' : 'w-0'} overflow-hidden`}>
             <div className="flex flex-col h-full">
                 <div className="p-4 text-white text-sm font-medium">Previous Chats</div>
                 <div className="flex-1 overflow-y-auto">
-                    {chats.map((chat, idx) => {
-                        let chatTitle = '';
-                        if (chat[0]?.content) {
-                            const content = chat[0].content;
-                            const cleanContent = content.replace(/```[\s\S]*?```/g, '').replace(/[^a-zA-Z0-9\s]/g, ' ');
-                            chatTitle = cleanContent.split(/[.!?]|\n/)[0].trim().slice(0, 40) + '...';
-                        }
-                        return (
-                            <button
-                                key={idx}
-                                onClick={() => onChatSelect(idx)}
-                                className={`w-full text-left px-4 py-3 hover:bg-[#2C3B5C] transition-colors ${currentChatId === idx ? 'bg-[#2C3B5C]' : ''}`}
-                            >
-                                <div className="flex items-center text-white">
-                                    <span role="img" aria-label="chat" className="mr-3">💬</span>
-                                    <span className="text-sm truncate">{chatTitle || 'Chat ' + (idx + 1)}</span>
-                                </div>
-                            </button>
-                        );
-                    })}
+                    {Object.entries(grouped).map(([group, chats]) => (
+                        <div key={group}>
+                            <div className="px-4 py-2 text-xs text-slate-300 font-semibold uppercase tracking-wide">{group}</div>
+                            {chats.map(chat => (
+                                <button
+                                    key={chat.id || chat.idx}
+                                    onClick={() => onChatSelect(chat.idx)}
+                                    className={`w-full text-left px-4 py-3 hover:bg-[#2C3B5C] transition-colors ${currentChatId === chat.idx ? 'bg-[#2C3B5C]' : ''}`}
+                                >
+                                    <div className="flex items-center text-white">
+                                        <span role="img" aria-label="chat" className="mr-3">💬</span>
+                                        <span className="text-sm truncate">{chat.name || `Chat ${chat.idx + 1}`}</span>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    ))}
                 </div>
             </div>
         </aside>
     );
 }
 
-function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, setMobileMenuOpen, userSignedUp, setUserSignedUp, onLogin }) {
+function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, setMobileMenuOpen, userSignedUp, setUserSignedUp, onLogin, onSignup }) {
     const [signupOpen, setSignupOpen] = useState(false);
-    const handleSignup = async (data) => {
-        await fetch('http://127.0.0.1:8000/api/signup/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        setUserSignedUp(true);
-    };
     return (
         <>
         <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A192F] shadow-lg">
@@ -122,7 +127,7 @@ function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, set
                             {/* Close (X) button */}
                             <button
                                 onClick={() => setMobileMenuOpen(false)}
-                                className="absolute top-3 right-3 text-white text-2xl font-bold hover:opacity-70 focus:outline-none"
+                                className="absolute top-3 right-3 text-white text-2xl font-bold hover:opacity-70"
                                 aria-label="Close menu"
                             >
                                 ×
@@ -158,7 +163,7 @@ function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, set
                 )}
             </div>
         </nav>
-        <SignupModal isOpen={signupOpen} onClose={() => setSignupOpen(false)} onSubmit={handleSignup} onLogin={onLogin} />
+        <SignupModal isOpen={signupOpen} onClose={() => setSignupOpen(false)} onSubmit={onSignup} onLogin={onLogin} />
         </>
     );
 }
@@ -198,6 +203,7 @@ function CodeReviewForm() {
         // Try to load from localStorage for chat continuity
         return localStorage.getItem('cm_session_id') || '';
     });
+    const [userEmail, setUserEmail] = useState('');
     const chatContainerRef = useRef(null);
 
     const showToast = (type, message, duration = 2500) => {
@@ -229,22 +235,44 @@ function CodeReviewForm() {
         setHasPrompted(true);
         setCode('');
         try {
-            // Send session_id for chat continuity
+            // Send session_id for chat continuity, and user email if signed in
+            const body = { messages: newChat, session_id: sessionId };
+            if (userEmail) body.email = userEmail;
             const response = await fetch('http://127.0.0.1:8000/api/code-review/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: newChat, session_id: sessionId })
+                body: JSON.stringify(body)
             });
             const data = await response.json();
             if (response.ok) {
-                setChat(prev => [
+                const updatedChat = [
                     ...newChat,
                     { role: 'assistant', content: Object.values(data.feedback).join('\n\n') }
-                ]);
+                ];
+                setChat(updatedChat);
+                setAllChats(prev => {
+                    // Always update the full conversation (user + assistant messages)
+                    if (currentChatId !== null && prev[currentChatId]) {
+                        const updated = [...prev];
+                        updated[currentChatId] = {
+                            ...updated[currentChatId],
+                            messages: updatedChat, // Save the entire conversation
+                            updated_at: new Date().toISOString(),
+                        };
+                        return updated;
+                    } else {
+                        // If starting a new chat, add the full conversation
+                        const newAll = [...prev, { messages: updatedChat, name: null, updated_at: new Date().toISOString() }];
+                        setCurrentChatId(newAll.length - 1);
+                        return newAll;
+                    }
+                });
                 if (data.session_id && data.session_id !== sessionId) {
                     setSessionId(data.session_id);
                     localStorage.setItem('cm_session_id', data.session_id);
                 }
+                // Refresh chats after new message if signed in
+                if (userEmail) await fetchUserChats(userEmail);
             } else {
                 setError(data);
                 showToast('error', 'Error: Couldn’t fetch response.');
@@ -257,6 +285,25 @@ function CodeReviewForm() {
         }
     };
 
+    // Fetch user chats after sign-in
+    const fetchUserChats = async (email) => {
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/fetch-user-chats/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await response.json();
+            if (response.ok && data.chats) {
+                setAllChats(data.chats);
+            } else {
+                setAllChats([]);
+            }
+        } catch (err) {
+            setAllChats([]);
+        }
+    };
+
     // Auto-scroll chat to bottom
     useEffect(() => {
         if (chatContainerRef.current) {
@@ -266,7 +313,11 @@ function CodeReviewForm() {
 
     // New chat handler
     const handleNewChat = () => {
-        if (chat.length > 0) setAllChats(prev => [...prev, chat]);
+        // Only save chat if it has at least one user and one assistant message
+        if (chat.length > 1 && chat.some(m => m.role === 'user') && chat.some(m => m.role === 'assistant')) {
+            // Save the whole conversation as a new chat
+            setAllChats(prev => [...prev, { messages: chat, name: null, updated_at: new Date().toISOString() }]);
+        }
         setChat([]);
         setHasPrompted(false);
         setCurrentChatId(null);
@@ -276,17 +327,37 @@ function CodeReviewForm() {
 
     // Chat selection handler
     const handleChatSelect = (chatId) => {
-        if (chat.length > 0 && currentChatId === null) setAllChats(prev => [...prev, chat]);
-        setChat(allChats[chatId]);
-        setCurrentChatId(chatId);
-        setHasPrompted(true);
+        const selected = allChats[chatId];
+        if (selected && selected.messages && selected.messages.length > 0) {
+            setChat(selected.messages);
+            setCurrentChatId(chatId);
+            setHasPrompted(true);
+        }
     };
 
     // Login handler
     const handleLogin = async ({ email, password }) => {
-        // Dummy login: always succeed for demo
         setUserSignedUp(true);
+        setUserEmail(email);
+        await fetchUserChats(email);
     };
+
+    // Signup handler
+    const handleSignup = async (data) => {
+        await fetch('http://127.0.0.1:8000/api/signup/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        setUserSignedUp(true);
+        setUserEmail(data.email);
+        await fetchUserChats(data.email);
+    };
+
+    // Filter out empty chats from display
+    const filteredChats = allChats.filter(
+        c => c && c.messages && c.messages.length > 1 && c.messages.some(m => m.role === 'user') && c.messages.some(m => m.role === 'assistant')
+    );
 
     // Responsive layout
     return (
@@ -300,9 +371,10 @@ function CodeReviewForm() {
                 userSignedUp={userSignedUp}
                 setUserSignedUp={setUserSignedUp}
                 onLogin={handleLogin}
+                onSignup={handleSignup}
             />
             <div className="flex-1 flex flex-row w-full overflow-hidden pt-16">
-                <Sidebar isOpen={sidebarOpen} chats={allChats} onChatSelect={handleChatSelect} currentChatId={currentChatId} />
+                <Sidebar isOpen={sidebarOpen} chats={filteredChats} onChatSelect={handleChatSelect} currentChatId={currentChatId} />
                 <main
                     className={`flex-1 flex flex-col items-center w-full bg-[#0A192F] relative transition-all duration-300 ${sidebarOpen ? 'ml-72' : 'ml-0'}`}
                 >
