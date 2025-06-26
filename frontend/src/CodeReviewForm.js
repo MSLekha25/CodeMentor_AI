@@ -194,6 +194,10 @@ function CodeReviewForm() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [userSignedUp, setUserSignedUp] = useState(false);
+    const [sessionId, setSessionId] = useState(() => {
+        // Try to load from localStorage for chat continuity
+        return localStorage.getItem('cm_session_id') || '';
+    });
     const chatContainerRef = useRef(null);
 
     const showToast = (type, message, duration = 2500) => {
@@ -220,22 +224,27 @@ function CodeReviewForm() {
         if (!code.trim() || loading) return;
         setError(null);
         setLoading(true);
-        setChat(prev => [...prev, { role: 'user', content: code }]);
+        const newChat = [...chat, { role: 'user', content: code }];
+        setChat(newChat);
         setHasPrompted(true);
-        const prompt = code;
-        setCode(''); // Clear input immediately
+        setCode('');
         try {
+            // Send session_id for chat continuity
             const response = await fetch('http://127.0.0.1:8000/api/code-review/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: prompt, language: 'python' })
+                body: JSON.stringify({ messages: newChat, session_id: sessionId })
             });
             const data = await response.json();
             if (response.ok) {
                 setChat(prev => [
-                    ...prev,
-                    { role: 'ai', content: Object.values(data.feedback).join('\n\n') }
+                    ...newChat,
+                    { role: 'assistant', content: Object.values(data.feedback).join('\n\n') }
                 ]);
+                if (data.session_id && data.session_id !== sessionId) {
+                    setSessionId(data.session_id);
+                    localStorage.setItem('cm_session_id', data.session_id);
+                }
             } else {
                 setError(data);
                 showToast('error', 'Error: Couldn’t fetch response.');
@@ -261,6 +270,8 @@ function CodeReviewForm() {
         setChat([]);
         setHasPrompted(false);
         setCurrentChatId(null);
+        setSessionId('');
+        localStorage.removeItem('cm_session_id');
     };
 
     // Chat selection handler
