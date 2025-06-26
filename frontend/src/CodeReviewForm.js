@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { FaRegSquare, FaEdit, FaCog } from 'react-icons/fa';
+import { FaRegSquare, FaEdit, FaCog, FaUser, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { HiOutlineViewBoards } from 'react-icons/hi';
 import { RxDashboard } from 'react-icons/rx';
 
@@ -55,11 +55,21 @@ function Sidebar({ isOpen, chats, onChatSelect, currentChatId }) {
     );
 }
 
-function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, setMobileMenuOpen }) {
+function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, setMobileMenuOpen, userSignedUp, setUserSignedUp }) {
+    const [signupOpen, setSignupOpen] = useState(false);
+    const handleSignup = async (data) => {
+        await fetch('http://127.0.0.1:8000/api/signup/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        setUserSignedUp(true);
+    };
     return (
+        <>
         <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A192F] shadow-lg">
-            <div className="max-w-7xl mx-auto px-0 sm:px-2 lg:px-4">
-                <div className="flex items-center h-16 justify-between md:justify-between">
+            <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+                <div className="flex items-center h-16 justify-between w-full">
                     {/* Hamburger on mobile, icons in drawer */}
                     <div className="flex items-center flex-shrink-0">
                         <button
@@ -87,17 +97,28 @@ function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, set
                             </button>
                         </div>
                     </div>
-                    {/* Centered app title */}
+                    {/* Centered app title, responsive font and spacing */}
                     <div className="flex-1 flex justify-center items-center min-w-0">
-                        <span className="text-white text-3xl md:text-4xl font-bold ml-1 sm:ml-2 truncate">CodeMentor AI</span>
+                        <span className="text-white text-xl xs:text-2xl sm:text-3xl md:text-4xl font-bold ml-1 sm:ml-2 truncate text-center">CodeMentor AI</span>
                     </div>
-                    {/* Hide right spacer on mobile, keep for desktop */}
-                    <div className="w-4 sm:w-[120px] hidden sm:block"></div>
+                    {/* Signup button and user icon on the right, visible on all screens */}
+                    <div className="flex items-center gap-2 sm:gap-4 pr-2 sm:pr-0">
+                        {!userSignedUp && (
+                            <button
+                                className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 rounded-2xl font-bold text-white bg-transparent shadow-md hover:bg-[#233554] transition-colors text-sm sm:text-base md:text-lg"
+                                style={{ minWidth: 80, border: 'none' }}
+                                onClick={() => setSignupOpen(true)}
+                            >
+                                <FaUser className="w-5 h-5 text-white" />
+                                Signup
+                            </button>
+                        )}
+                    </div>
                 </div>
                 {/* Mobile drawer menu */}
                 {mobileMenuOpen && (
                     <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex sm:hidden" onClick={() => setMobileMenuOpen(false)}>
-                        <div className="bg-[#112240] w-56 h-full shadow-xl flex flex-col p-4 relative" onClick={e => e.stopPropagation()}>
+                        <div className="bg-[#112240] w-64 max-w-full h-full shadow-xl flex flex-col p-4 relative" onClick={e => e.stopPropagation()}>
                             {/* Close (X) button */}
                             <button
                                 onClick={() => setMobileMenuOpen(false)}
@@ -106,25 +127,39 @@ function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, set
                             >
                                 ×
                             </button>
-                            <button
-                                onClick={() => { onToggleSidebar(); setMobileMenuOpen(false); }}
-                                className="mb-4 flex items-center gap-2 p-2 rounded-lg hover:bg-[#2C3B5C] text-white mt-8"
-                            >
-                                <SidebarIcon className="w-7 h-7" />
-                                <span>Sidebar</span>
-                            </button>
-                            <button
-                                onClick={() => { onNewChat(); setMobileMenuOpen(false); }}
-                                className="mb-4 flex items-center gap-2 p-2 rounded-lg hover:bg-[#2C3B5C] text-white"
-                            >
-                                <FaEdit className="w-7 h-7" />
-                                <span>New Chat</span>
-                            </button>
+                            <div className="flex flex-col gap-4 mt-12">
+                                <button
+                                    onClick={() => { onToggleSidebar(); setMobileMenuOpen(false); }}
+                                    className="flex items-center gap-2 p-3 rounded-lg hover:bg-[#2C3B5C] text-white w-full"
+                                >
+                                    <SidebarIcon className="w-7 h-7" />
+                                    <span>Sidebar</span>
+                                </button>
+                                <button
+                                    onClick={() => { onNewChat(); setMobileMenuOpen(false); }}
+                                    className="flex items-center gap-2 p-3 rounded-lg hover:bg-[#2C3B5C] text-white w-full"
+                                >
+                                    <FaEdit className="w-7 h-7" />
+                                    <span>New Chat</span>
+                                </button>
+                                {!userSignedUp && (
+                                    <button
+                                        className="flex items-center gap-2 px-3 py-2 rounded-2xl font-bold text-white bg-transparent shadow-md hover:bg-[#233554] transition-colors text-sm mt-2 w-full justify-center"
+                                        style={{ minWidth: 80, border: 'none' }}
+                                        onClick={() => setSignupOpen(true)}
+                                    >
+                                        <FaUser className="w-5 h-5 text-white" />
+                                        Signup
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
             </div>
         </nav>
+        <SignupModal isOpen={signupOpen} onClose={() => setSignupOpen(false)} onSubmit={handleSignup} />
+        </>
     );
 }
 
@@ -159,6 +194,8 @@ function CodeReviewForm() {
     const [currentChatId, setCurrentChatId] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [user, setUser] = useState(null);
+    const [userSignedUp, setUserSignedUp] = useState(false);
     const chatContainerRef = useRef(null);
 
     const showToast = (type, message, duration = 2500) => {
@@ -245,6 +282,8 @@ function CodeReviewForm() {
                 isSidebarOpen={sidebarOpen}
                 mobileMenuOpen={mobileMenuOpen}
                 setMobileMenuOpen={setMobileMenuOpen}
+                userSignedUp={userSignedUp}
+                setUserSignedUp={setUserSignedUp}
             />
             <div className="flex-1 flex flex-row w-full overflow-hidden pt-16">
                 <Sidebar isOpen={sidebarOpen} chats={allChats} onChatSelect={handleChatSelect} currentChatId={currentChatId} />
@@ -528,6 +567,87 @@ function CodeReviewForm() {
                 </main>
             </div>
             {toast && toast.type === 'error' && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
+        </div>
+    );
+}
+
+function SignupModal({ isOpen, onClose, onSubmit }) {
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        try {
+            await onSubmit({ name, email, password });
+            setName('');
+            setEmail('');
+            setPassword('');
+            onClose();
+        } catch (err) {
+            setError('Signup failed.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-[#112240] rounded-2xl shadow-2xl p-8 w-full max-w-md relative">
+                <button onClick={onClose} className="absolute top-3 right-4 text-white text-2xl font-bold hover:opacity-70">×</button>
+                <h2 className="text-2xl font-bold text-white mb-6 text-center">Sign Up</h2>
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <input
+                        type="text"
+                        placeholder="Name"
+                        className="rounded-lg px-4 py-3 bg-[#1B2A4B] text-white placeholder:text-slate-400 focus:outline-none"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        required
+                    />
+                    <input
+                        type="email"
+                        placeholder="Email"
+                        className="rounded-lg px-4 py-3 bg-[#1B2A4B] text-white placeholder:text-slate-400 focus:outline-none"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        required
+                    />
+                    <div className="relative flex items-center">
+                        <input
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Password"
+                            className="rounded-lg px-4 py-3 bg-[#1B2A4B] text-white placeholder:text-slate-400 focus:outline-none w-full pr-12"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            required
+                        />
+                        <button
+                            type="button"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-white text-xl focus:outline-none"
+                            tabIndex={-1}
+                            onClick={() => setShowPassword(v => !v)}
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                            {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </button>
+                    </div>
+                    {error && <div className="text-red-400 text-sm text-center">{error}</div>}
+                    <button
+                        type="submit"
+                        className="mt-2 rounded-xl bg-[#60A5FA] text-[#0A192F] font-bold py-3 text-lg hover:bg-[#3B82F6] transition-colors"
+                        disabled={loading}
+                    >
+                        {loading ? 'Signing up...' : 'Sign Up'}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 }

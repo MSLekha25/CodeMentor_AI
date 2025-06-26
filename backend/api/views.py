@@ -15,6 +15,8 @@ AZURE_OPENAI_ENDPOINT="https://aiseccureform.openai.azure.com/"
 AZURE_OPENAI_DEPLOYMENT="gpt-4o"
 AZURE_OPENAI_API_VERSION="2025-01-01-preview"
 
+from .models import SignupLog
+
 class CodeReviewSerializer(serializers.Serializer):
     code = serializers.CharField()
     learning_mode = serializers.BooleanField(default=False)
@@ -52,6 +54,23 @@ Code:
         except Exception as e:
             print(f"Azure OpenAI error: {e}")
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SignupSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100)
+    email = serializers.EmailField()
+    password = serializers.CharField(max_length=128)
+
+@api_view(['POST'])
+def signup(request):
+    serializer = SignupSerializer(data=request.data)
+    if serializer.is_valid():
+        SignupLog.objects.create(
+            name=serializer.validated_data['name'],
+            email=serializer.validated_data['email'],
+            password=serializer.validated_data['password']
+        )
+        return Response({'message': 'Signup successful'}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def home(request):
