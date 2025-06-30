@@ -267,6 +267,15 @@ function CodeReviewForm() {
                         return newAll;
                     }
                 });
+                // Persist the updated chat to the backend immediately after assistant response
+                if (userEmail) {
+                    await fetch('http://127.0.0.1:8000/api/code-review/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ messages: updatedChat, session_id: data.session_id || sessionId, email: userEmail })
+                    });
+                    await fetchUserChats(userEmail);
+                }
                 if (data.session_id && data.session_id !== sessionId) {
                     setSessionId(data.session_id);
                     localStorage.setItem('cm_session_id', data.session_id);
