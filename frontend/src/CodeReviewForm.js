@@ -159,19 +159,18 @@ function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, set
                                         )}
                                         {/* Theme Submenu */}
                                         {themeMenuOpen && (
-                                            <div ref={themeMenuRef} className={`w-48 border rounded-xl shadow-xl py-2 flex flex-col animate-fade-in ${theme === 'day' ? 'bg-[#F6F8FA] border-[#B0BEC5]' : 'bg-[#1A2E4C] border-[#233554]'}`}
-                                                style={{boxShadow: theme === 'day' ? '0 4px 24px 0 #B0BEC5' : '0 8px 32px 0 rgba(16,30,54,0.25)', marginTop: '-8px'}}
+                                            <div ref={themeMenuRef} className={`w-48 border rounded-xl py-2 flex flex-col animate-fade-in ${theme === 'day' ? 'bg-[#F6F8FA] border-[#B0BEC5]' : 'bg-[#1A2E4C] border-[#233554]'}`}
+                                                style={{ marginTop: '-8px' }}
                                             >
                                                 <button
-                                                    className={`flex items-center gap-3 px-5 py-3 text-base rounded-xl font-semibold transition-all duration-200 mb-1 ${theme === 'day' ? (theme === 'day' ? 'bg-[#E5F0FF] text-[#1A237E] shadow border border-[#B0BEC5]' : 'text-[#1A237E]') : (theme === 'night' ? 'bg-[#233554] text-[#60A5FA] shadow border border-[#233554]' : 'text-white')}`}
-                                                    style={{boxShadow: theme === 'day' && theme === 'day' ? '0 2px 8px 0 #B0BEC5' : undefined, outline: theme === 'day' && theme === 'day' ? '2px solid #B0BEC5' : undefined}}
+                                                    className={`flex items-center gap-3 px-5 py-3 text-base rounded-xl font-semibold transition-all duration-200 mb-1 ${theme === 'day' ? 'bg-[#E5F0FF] text-[#1A237E]' : 'text-white'} ${theme === 'day' && theme === 'day' ? '' : ''}`}
                                                     onClick={() => { setTheme('day'); setThemeMenuOpen(false); setSettingsOpen(false); }}
                                                 >
                                                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#FFD700" stroke="#FFD700" strokeWidth="1.5"/><g stroke="#FFD700" strokeWidth="1.5"><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g></svg>
                                                     Day
                                                 </button>
                                                 <button
-                                                    className={`flex items-center gap-3 px-5 py-3 text-base rounded-xl font-semibold transition-all duration-200 ${theme === 'night' ? 'bg-[#233554] text-[#60A5FA] shadow border border-[#233554]' : 'text-white hover:bg-[#233554] hover:text-[#60A5FA]'}`}
+                                                    className={`flex items-center gap-3 px-5 py-3 text-base rounded-xl font-semibold transition-all duration-200 ${theme === 'night' ? 'bg-[#233554] text-[#60A5FA]' : 'text-[#1A237E] hover:bg-[#E3ECF7]'} ${theme === 'day' ? 'opacity-70' : ''}`}
                                                     style={{marginTop: '2px'}}
                                                     onClick={() => { setTheme('night'); setThemeMenuOpen(false); setSettingsOpen(false); }}
                                                 >
@@ -302,7 +301,10 @@ function CodeReviewForm() {
         return localStorage.getItem('cm_session_id') || '';
     });
     const [userEmail, setUserEmail] = useState('');
-    const [theme, setTheme] = useState('night'); // 'night' (default) or 'day'
+    const [theme, setThemeState] = useState(() => {
+        // Load theme from localStorage, default to 'night'
+        return localStorage.getItem('cm_theme') || 'night';
+    });
     const chatContainerRef = useRef(null);
 
     useEffect(() => {
@@ -470,6 +472,12 @@ function CodeReviewForm() {
         setUserSignedUp(true);
         setUserEmail(data.email);
         await fetchUserChats(data.email);
+    };
+
+    // Only change theme on user click, and persist to localStorage
+    const setTheme = (newTheme) => {
+        setThemeState(newTheme);
+        localStorage.setItem('cm_theme', newTheme);
     };
 
     // Filter out empty chats from display
