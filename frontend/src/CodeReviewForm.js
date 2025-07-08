@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { FaEdit, FaUser, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEdit, FaUser, FaEye, FaEyeSlash, FaCog } from 'react-icons/fa';
 import { HiOutlineViewBoards } from 'react-icons/hi';
 import { RxDashboard } from 'react-icons/rx';
 import dayjs from 'dayjs';
@@ -70,6 +70,27 @@ function Sidebar({ isOpen, chats, onChatSelect, currentChatId }) {
 
 function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, setMobileMenuOpen, userSignedUp, setUserSignedUp, onLogin, onSignup }) {
     const [signupOpen, setSignupOpen] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const settingsButtonRef = useRef(null);
+    const settingsMenuRef = useRef(null);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        if (!settingsOpen) return;
+        function handleClickOutside(e) {
+            if (
+                settingsMenuRef.current &&
+                !settingsMenuRef.current.contains(e.target) &&
+                settingsButtonRef.current &&
+                !settingsButtonRef.current.contains(e.target)
+            ) {
+                setSettingsOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [settingsOpen]);
+
     return (
         <>
         <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A192F] shadow-lg">
@@ -100,6 +121,41 @@ function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, set
                             >
                                 <FaEdit className="text-white w-7 h-7" />
                             </button>
+                            {/* Settings Icon with Dropdown */}
+                            <div className="relative">
+                                <button
+                                    ref={settingsButtonRef}
+                                    className="p-2 rounded-lg hover:bg-[#2C3B5C]"
+                                    title="Settings"
+                                    type="button"
+                                    aria-label="Settings"
+                                    onClick={() => setSettingsOpen(v => !v)}
+                                >
+                                    <FaCog className="text-white w-7 h-7" />
+                                </button>
+                                {settingsOpen && (
+                                    <div
+                                        ref={settingsMenuRef}
+                                        className="absolute right-0 mt-2 w-44 rounded-xl shadow-xl z-50 flex flex-col bg-[#192B45] border border-[#233554] animate-fade-in"
+                                        style={{ top: '110%', minWidth: '176px', boxShadow: '0 8px 32px 0 rgba(16,30,54,0.25)' }}
+                                    >
+                                        <button
+                                            className="px-4 py-3 text-left hover:bg-[#233554] rounded-t-xl text-white transition-colors flex items-center justify-between"
+                                            type="button"
+                                        >
+                                            <span>Theme</span>
+                                        </button>
+                                        {userSignedUp && (
+                                            <button
+                                                className="px-4 py-3 text-left hover:bg-[#233554] rounded-b-xl text-white transition-colors"
+                                                type="button"
+                                            >
+                                                Signout
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                     {/* Centered app title, responsive font and spacing */}
@@ -146,6 +202,13 @@ function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, set
                                 >
                                     <FaEdit className="w-7 h-7" />
                                     <span>New Chat</span>
+                                </button>
+                                {/* Settings Icon - No functionality */}
+                                <button
+                                    className="flex items-center gap-2 p-3 rounded-lg hover:bg-[#2C3B5C] text-white w-full"
+                                >
+                                    <FaCog className="w-7 h-7" />
+                                    <span>Settings</span>
                                 </button>
                                 {!userSignedUp && (
                                     <button
