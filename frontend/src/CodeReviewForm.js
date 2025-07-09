@@ -610,11 +610,11 @@ function CodeReviewForm() {
                                         msg.role === 'user' ? (
                                             <div
                                                 key={idx}
-                                                className={`self-end max-w-2xl w-fit rounded-2xl px-6 py-4 mb-2 shadow-lg text-base font-medium animate-fade-in break-all whitespace-pre-line overflow-wrap break-words word-break ${theme === 'day' ? 'bg-[#E3ECF7] text-[#1A237E]' : 'bg-[#1A2E4C] text-white'}`}
+                                                className={`self-end max-w-2xl w-fit rounded-2xl px-6 py-4 mb-2 shadow-lg text-base font-medium animate-fade-in break-all whitespace-pre-line overflow-wrap break-words word-break ${theme === 'day' ? 'bg-[#E3ECF7] text-[#1A237E]' : 'bg-[#1A2E4C] text-white'} sm:max-w-2xl sm:w-fit w-full max-w-[95vw]`}
                                                 style={{ wordBreak: 'break-all', overflowWrap: 'break-word', whiteSpace: 'pre-line' }}
                                             >
                                                 <span className={`opacity-80 text-xs font-semibold tracking-wide ${theme === 'day' ? 'text-[#3B4A6B]' : 'text-slate-300'}`}>You</span>
-                                                <pre className="mt-2 font-mono text-[1.08em] text-left bg-transparent border-none p-0 m-0 leading-relaxed whitespace-pre break-words" style={{fontFamily: 'Fira Mono, Menlo, monospace', background: 'none', border: 'none', textAlign: 'left', whiteSpace: 'pre'}}>{msg.content}</pre>
+                                                <pre className="mt-2 font-mono text-[1.08em] text-left bg-transparent border-none p-0 m-0 leading-relaxed whitespace-pre-wrap break-words" style={{fontFamily: 'Fira Mono, Menlo, monospace', background: 'none', border: 'none', textAlign: 'left', whiteSpace: 'pre-wrap', maxWidth: '100vw'}}>{msg.content}</pre>
                                             </div>
                                         ) : (
                                             <div
