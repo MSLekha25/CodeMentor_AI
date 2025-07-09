@@ -2,8 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { FaEdit, FaUser, FaEye, FaEyeSlash, FaCog } from 'react-icons/fa';
-import { HiOutlineViewBoards } from 'react-icons/hi';
-import { RxDashboard } from 'react-icons/rx';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.extend(relativeTime);
@@ -68,7 +66,7 @@ function Sidebar({ isOpen, chats, onChatSelect, currentChatId, theme }) {
     );
 }
 
-function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, setMobileMenuOpen, userSignedUp, setUserSignedUp, onLogin, onSignup, theme, setTheme }) {
+function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, setMobileMenuOpen, userSignedUp, setUserSignedUp, onLogin, onSignup, theme, setTheme, handleSignout }) {
     const [signupOpen, setSignupOpen] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [themeMenuOpen, setThemeMenuOpen] = useState(false);
@@ -183,6 +181,7 @@ function Navbar({ onToggleSidebar, onNewChat, isSidebarOpen, mobileMenuOpen, set
                                             <button
                                                 className={`px-4 py-3 text-left rounded-b-xl transition-colors ${theme === 'day' ? 'text-[#1A237E] hover:bg-[#E3ECF7]' : 'text-white hover:bg-[#233554]'}`}
                                                 type="button"
+                                                onClick={handleSignout}
                                             >
                                                 Signout
                                             </button>
@@ -474,6 +473,16 @@ function CodeReviewForm() {
         await fetchUserChats(data.email);
     };
 
+    // Signout handler
+    const handleSignout = () => {
+        setUserSignedUp(false);
+        setUserEmail('');
+        setAllChats([]);
+        setCurrentChatId(null);
+        setSessionId('');
+        localStorage.removeItem('cm_session_id');
+    };
+
     // Only change theme on user click, and persist to localStorage
     const setTheme = (newTheme) => {
         setThemeState(newTheme);
@@ -500,6 +509,7 @@ function CodeReviewForm() {
                 onSignup={handleSignup}
                 theme={theme}
                 setTheme={setTheme}
+                handleSignout={handleSignout}
             />
             <div className="flex-1 flex flex-row w-full overflow-hidden pt-16">
                 <Sidebar isOpen={sidebarOpen} chats={filteredChats} onChatSelect={handleChatSelect} currentChatId={currentChatId} theme={theme} />
